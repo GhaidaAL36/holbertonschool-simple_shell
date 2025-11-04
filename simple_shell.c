@@ -73,7 +73,9 @@ int main(int argc __attribute__((unused)), char *argv[])
 	size_t len = 0;
 	ssize_t nread;
 
-	print_prompt();
+	if (isatty(STDIN_FILENO))
+		print_prompt();
+
 	nread = read_input(&input, &len);
 
 	while (nread != -1)
@@ -83,7 +85,9 @@ int main(int argc __attribute__((unused)), char *argv[])
 
 		execute_command(input, argv[0]);
 
-		print_prompt();
+		if (isatty(STDIN_FILENO))
+			print_prompt();
+
 		nread = read_input(&input, &len);
 	}
 
