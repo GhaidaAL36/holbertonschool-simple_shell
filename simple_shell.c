@@ -31,11 +31,19 @@ ssize_t read_input(char **input, size_t *len)
  */
 void execute_command(char *command, char *program_name)
 {
-	char *args[2];
+	char *args[200];
 	pid_t pid;
+	char *token;
+	int i = 0;
 
-	args[0] = command;
-	args[1] = NULL;
+	token = strtok(command, " ");
+	while (token != NULL)
+	{
+		args[i++] = token;
+		token = strtok(NULL, " ");
+	}
+
+	args[i] = NULL;
 
 	pid = fork();
 
@@ -61,6 +69,31 @@ void execute_command(char *command, char *program_name)
 }
 
 /**
+ * trim_whitespace - Removes leading and trailing spaces from a string
+ * @str: The string to trim
+ * Return: pointer to the trimmed string
+ */
+char *trim_whitespace(char *str)
+{
+	char *end;
+
+	while (*str == ' ' || *str == '\t' || *str == '\n')
+		str++;
+
+	if (*str == 0)
+		return (str);
+
+	end = str + strlen(str) - 1;
+
+	while (end > str && (*end == ' ' || *end == '\t' || *end == '\n'))
+		end--;
+
+	*(end + 1) = '\0';
+
+	return str;
+}
+
+/**
  * main - Entry point of the simple shell program.
  * @argc: Argument count.
  * @argv: Argument vector (array of strings).
@@ -72,6 +105,7 @@ int main(int argc __attribute__((unused)), char *argv[])
 	char *input = NULL;
 	size_t len = 0;
 	ssize_t nread;
+	char *trimmed_input;
 
 	if (isatty(STDIN_FILENO))
 		print_prompt();
@@ -83,7 +117,10 @@ int main(int argc __attribute__((unused)), char *argv[])
 		if (input[nread - 1] == '\n')
 			input[nread - 1] = '\0';
 
-		execute_command(input, argv[0]);
+		trimmed_input = trim_whitespace(input);
+
+		if (trimmed_input[0] != '\0')
+			execute_command(trimmed_input, argv[0]);
 
 		if (isatty(STDIN_FILENO))
 			print_prompt();
