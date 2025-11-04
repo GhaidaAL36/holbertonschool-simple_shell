@@ -50,6 +50,23 @@ void execute_command(char *command, char *program_name)
 	}
 
 	args[i] = NULL;
+if (strcmp(args[0], "exit") == 0)
+{
+    exit(0);
+}
+
+if (strcmp(args[0], "env") == 0)
+{
+    extern char **environ;
+    int j = 0;
+
+    while (environ[j])
+    {
+        printf("%s\n", environ[j]);
+        j++;
+    }
+    return;
+}
 
 	if (access(args[0], X_OK) != 0)
 	{
