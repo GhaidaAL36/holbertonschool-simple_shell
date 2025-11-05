@@ -2,35 +2,39 @@
 
 void execute(char **argv)
 {
-	pid_t pid;
-	char *cmd_path;
+    char *path;
+    pid_t pid;
 
-	if (!argv || !argv[0])
-		return;
+    if (!argv || !argv[0])
+        return;
 
-	if (strcmp(argv[0], "env") == 0)
-	{
-		print_env();
-		return;
-	}
+    if (strcmp(argv[0], "env") == 0)
+    {
+        print_env();
+        return;
+    }
 
-	cmd_path = handle_path(argv[0]);
-	if (!cmd_path)
-	{
-		write(STDERR_FILENO, "not found\n", 10);
-		return;
-	}
+    if (strchr(argv[0], '/'))
+        path = argv[0];
+    else
+        path = handle_path(argv[0]);
 
-	pid = fork();
-	if (pid == 0)
-	{
-		if (execve(cmd_path, argv, environ) == -1)
-			perror("execve");
-		exit(127);
-	}
-	else if (pid > 0)
-		waitpid(pid, NULL, 0);
+    if (!path)
+    {
+        write(STDERR_FILENO, "not found\n", 10);
+        return;
+    }
 
-	if (strcmp(cmd_path, argv[0]) != 0)
-		free(cmd_path);
+    pid = fork();
+    if (pid == 0)
+    {
+        if (execve(path, argv, environ) == -1)
+            perror("execve");
+        exit(127);
+    }
+    else if (pid > 0)
+        waitpid(pid, NULL, 0);
+
+    if (path != argv[0])
+        free(path);
 }
