@@ -70,8 +70,8 @@ void execute_command(char *command, char *program_name)
 		free(path_copy);
 		if (!found)
 {
-    dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
-    return;
+	dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
+return;
 }
 
 	}
