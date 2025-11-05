@@ -1,9 +1,5 @@
 #include "main.h"
 
-/**
- * execute - create child and run command
- * @argv: arguments array
- */
 void execute(char **argv)
 {
 	pid_t pid;
@@ -12,7 +8,6 @@ void execute(char **argv)
 	if (!argv || !argv[0])
 		return;
 
-	/* built-in env */
 	if (strcmp(argv[0], "env") == 0)
 	{
 		print_env();
