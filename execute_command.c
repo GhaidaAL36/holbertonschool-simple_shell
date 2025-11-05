@@ -1,54 +1,37 @@
 #include "simple_shell.h"
 
-/**
- * execute_command - executes a command
- * @args: array of arguments
- * @env: environment variables
- */
-void execute_command(char **args, char **env)
+void execute_command(char **args)
 {
-	char *command = args[0];
-	char *path_env, *path_copy, *token, full_path[1024];
+	char *cmd = args[0];
+	char *path = getenv("PATH");
+	char *token;
+	char full[1024];
 	struct stat st;
 
-	/* If command contains '/' (absolute or relative path) */
-	if (strchr(command, '/') != NULL)
+	if (strchr(cmd, '/') != NULL)
 	{
-		if (stat(command, &st) == 0)
-		{
-			execve(command, args, env);
-			perror("./hsh");
-			exit(EXIT_FAILURE);
-		}
-		else
-		{
-			fprintf(stderr, "./hsh: %s: not found\n", command);
-			return;
-		}
+		if (stat(cmd, &st) == 0)
+			execve(cmd, args, environ);
+		write(STDERR_FILENO, "./hsh: not found\n", 17);
+		exit(127);
 	}
 
-	/* Handle empty or missing PATH */
-	path_env = getenv("PATH");
-	if (path_env == NULL || *path_env == '\0')
+	if (!path || *path == '\0')
 	{
-		fprintf(stderr, "./hsh: %s: not found\n", command);
-		return;
+		write(STDERR_FILENO, "./hsh: not found\n", 17);
+		exit(127);
 	}
 
-	path_copy = strdup(path_env);
-	token = strtok(path_copy, ":");
+	token = strtok(path, ":");
 	while (token)
 	{
-		snprintf(full_path, sizeof(full_path), "%s/%s", token, command);
-		if (stat(full_path, &st) == 0)
-		{
-			execve(full_path, args, env);
-			perror("./hsh");
-			free(path_copy);
-			exit(EXIT_FAILURE);
-		}
+		strcpy(full, token);
+		strcat(full, "/");
+		strcat(full, cmd);
+		if (stat(full, &st) == 0)
+			execve(full, args, environ);
 		token = strtok(NULL, ":");
 	}
-	fprintf(stderr, "./hsh: %s: not found\n", command);
-	free(path_copy);
+	write(STDERR_FILENO, "./hsh: not found\n", 17);
+	exit(127);
 }
