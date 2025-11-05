@@ -1,41 +1,43 @@
 #include "simple_shell.h"
 
-/**
- * read_line - reads a line from stdin using read()
- * Return: pointer to the line
- */
 char *read_line(void)
 {
-	char *buffer;
-	size_t bufsize = 1024;
-	ssize_t bytes_read;
-	size_t i = 0;
+	char *buf = NULL;
+	size_t size = 0;
+	ssize_t r = 0, i = 0;
 	char c;
 
-	buffer = malloc(sizeof(char) * bufsize);
-	if (!buffer)
+	buf = malloc(1024);
+	if (!buf)
 		return (NULL);
 
-	while (1)
+	while ((r = read(STDIN_FILENO, &c, 1)) > 0)
 	{
-		bytes_read = read(STDIN_FILENO, &c, 1);
-		if (bytes_read == -1)
-		{
-			free(buffer);
-			return (NULL);
-		}
-		if (bytes_read == 0 || c == '\n')
-		{
-			buffer[i] = '\0';
-			return (buffer);
-		}
-		buffer[i++] = c;
-		if (i >= bufsize)
-		{
-			bufsize += 1024;
-			buffer = realloc(buffer, bufsize);
-			if (!buffer)
-				return (NULL);
-		}
+		if (c == '\n')
+			break;
+		buf[i++] = c;
 	}
+	buf[i] = '\0';
+	if (r == 0 && i == 0)
+	{
+		free(buf);
+		return (NULL);
+	}
+	return (buf);
+}
+
+char **split_line(char *line)
+{
+	char **tokens = malloc(sizeof(char *) * 64);
+	char *token;
+	int i = 0;
+
+	token = strtok(line, " \t\r\n");
+	while (token)
+	{
+		tokens[i++] = token;
+		token = strtok(NULL, " \t\r\n");
+	}
+	tokens[i] = NULL;
+	return (tokens);
 }
