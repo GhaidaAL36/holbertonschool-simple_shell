@@ -50,10 +50,6 @@ void execute_command(char *command, char *program_name)
 	}
 
 	args[i] = NULL;
-if (strcmp(args[0], "exit") == 0)
-{
-    exit(0);
-}
 	if (access(args[0], X_OK) != 0)
 	{
 		path = getenv("PATH");
