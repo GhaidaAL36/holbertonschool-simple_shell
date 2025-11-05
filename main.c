@@ -1,40 +1,51 @@
-#include "simple_shell.h"
+#include "shell.h"
 
 /**
- * main - Entry point of the simple shell program.
- * @argc: Argument count (unused).
- * @argv: Argument vector.
- * Return: Always 0.
+ * main - simple shell main loop
+ * @ac: argument count
+ * @av: argument vector
+ * @env: environment variables
+ *
+ * Return: 0 on success
  */
-int main(int argc __attribute__((unused)), char *argv[])
+int main(int ac, char **av, char **env)
 {
-    char *input = NULL, *trimmed_input;
-    size_t len = 0;
-    ssize_t nread;
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t read;
+	char **args;
+	(void)ac;
 
-    if (isatty(STDIN_FILENO))
-        print_prompt();
+	while (1)
+	{
+		if (isatty(STDIN_FILENO))
+			write(STDOUT_FILENO, "$ ", 2);
 
-    while ((nread = read_input(&input, &len)) != -1)
-    {
-        if (nread > 0 && input[nread - 1] == '\n')
-            input[nread - 1] = '\0';
+		read = getline(&line, &len, stdin);
+		if (read == -1)
+		{
+			free(line);
+			exit(0);
+		}
 
-        trimmed_input = trim_whitespace(input);
+		args = parse_line(line);
+		if (!args || !args[0])
+		{
+			free(args);
+			continue;
+		}
 
-        if (strcmp(trimmed_input, "exit") == 0)
-        {
-            free(input);
-            return (0);
-        }
+		if (strcmp(args[0], "exit") == 0)
+		{
+			free(args);
+			free(line);
+			exit(0);
+		}
 
-        if (trimmed_input[0] != '\0')
-            execute_command(trimmed_input, argv[0]);
+		execute_command(args, env);
 
-        if (isatty(STDIN_FILENO))
-            print_prompt();
-    }
-
-    free(input);
-    return (0);
+		free(args);
+	}
+	free(line);
+	return (0);
 }
