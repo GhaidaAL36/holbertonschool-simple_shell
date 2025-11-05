@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+extern char **environ;
 
 /**
  * print_prompt - Prints the shell prompt to the user.
@@ -41,7 +42,7 @@ void execute_command(char *command, char *program_name)
 	char *dir;
 	char full_path[1024];
 	int found = 0;
-
+	
 	token = strtok(command, " ");
 	while (token != NULL)
 	{
@@ -85,7 +86,7 @@ void execute_command(char *command, char *program_name)
 
 	if (pid == 0)
 	{
-		if (execve(args[0], args, NULL) == -1)
+		    if (execve(args[0], args, environ) == -1)
 		{
 			perror(program_name);
 			exit(1);
