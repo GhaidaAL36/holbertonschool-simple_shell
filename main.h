@@ -13,8 +13,9 @@ extern char **environ;
 
 char *read_line(void);
 char **tokenize(char *line);
+int is_interactive(void);
 void execute(char **argv);
-char *handle_path(char *cmd);
+char *handle_path(const char *cmd);
 void print_env(void);
 
 #endif
