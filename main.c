@@ -1,12 +1,8 @@
 #include "simple_shell.h"
 
-/**
- * main - Entry point of simple shell
- * Return: 0 on success
- */
 int main(void)
 {
-	char *line = NULL;
+	char *line;
 	char **args;
 	pid_t pid;
 	int status;
@@ -28,7 +24,7 @@ int main(void)
 			continue;
 		}
 
-		if (_strcmp(args[0], "exit") == 0)
+		if (strcmp(args[0], "exit") == 0)
 		{
 			free(args);
 			free(line);
@@ -38,10 +34,8 @@ int main(void)
 		pid = fork();
 		if (pid == 0)
 			execute_command(args);
-		else if (pid > 0)
-			waitpid(pid, &status, 0);
 		else
-			perror("fork");
+			waitpid(pid, &status, 0);
 
 		free(args);
 		free(line);
