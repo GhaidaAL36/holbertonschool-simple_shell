@@ -1,7 +1,10 @@
 #include "main.h"
 
-int main(__attribute__((unused)) int argc, char **argv)
+int main(int argc, char **argv)
 {
+	(void)argc;
+	(void)argv;
+
 	char *line = NULL;
 	char **args = NULL;
 	size_t len = 0;
