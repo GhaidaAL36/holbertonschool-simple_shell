@@ -1,9 +1,9 @@
 #include "simple_shell.h"
 
 /**
- * execute_command - Executes a command entered by the user.
- * @command: Command string input by user
- * @program_name: Name of the shell program
+ * execute_command - Execute a command with arguments and PATH support
+ * @command: full input string
+ * @program_name: program name for error messages
  */
 void execute_command(char *command, char *program_name)
 {
@@ -15,7 +15,7 @@ void execute_command(char *command, char *program_name)
 	int found = 0;
 	pid_t pid;
 
-	/* Parse command + arguments */
+	/* Split input to arguments */
 	token = strtok(command, " ");
 	while (token != NULL)
 	{
@@ -24,9 +24,7 @@ void execute_command(char *command, char *program_name)
 	}
 	args[i] = NULL;
 
-	/* Built-in exit handled in main already */
-
-	/* If command contains '/' execute directly */
+	/* If command contains a '/' try direct exec first */
 	if (strchr(args[0], '/') != NULL)
 	{
 		if (access(args[0], X_OK) == 0)
@@ -49,7 +47,6 @@ void execute_command(char *command, char *program_name)
 	path = getenv("PATH");
 	if (!path)
 		return;
-
 	path_copy = strdup(path);
 	dir = strtok(path_copy, ":");
 
@@ -68,10 +65,10 @@ void execute_command(char *command, char *program_name)
 	if (!found)
 	{
 		dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
-		return; /* ❗no fork if not found */
+		return;
 	}
 
-	/* Execute */
+	/* Execute found command */
 	pid = fork();
 	if (pid == 0)
 	{
