@@ -1,10 +1,5 @@
 #include "main.h"
 
-/**
- * find_in_path - search command in PATH
- * @cmd: command name
- * Return: full path string (malloc'd) or NULL if not found
- */
 char *find_in_path(const char *cmd)
 {
 	char *path = getenv("PATH"), *copy, *token, full[1024];
@@ -24,6 +19,7 @@ char *find_in_path(const char *cmd)
 		strcpy(full, token);
 		strcat(full, "/");
 		strcat(full, cmd);
+
 		if (stat(full, &st) == 0)
 		{
 			free(copy);
