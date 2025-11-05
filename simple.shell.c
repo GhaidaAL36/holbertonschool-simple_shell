@@ -2,13 +2,13 @@
 
 int main(int argc, char **argv)
 {
-	(void)argc;
-	(void)argv;
-
 	char *line = NULL;
 	char **args = NULL;
 	size_t len = 0;
 	ssize_t read_len;
+
+	(void)argc;
+	(void)argv;
 
 	while (1)
 	{
