@@ -1,21 +1,26 @@
 #include "main.h"
 
-char *find_in_path(const char *cmd)
+char *handle_path(char *cmd)
 {
-	char *path = getenv("PATH"), *copy, *token, full[1024];
+	char *path = getenv("PATH");
+	char *copy, *token, *full;
 	struct stat st;
 
-	if (!cmd || !path)
+	if (!cmd)
 		return (NULL);
 
-	copy = malloc(strlen(path) + 1);
-	if (!copy)
+	if (cmd[0] == '/' || cmd[0] == '.')
+	{
+		if (stat(cmd, &st) == 0)
+			return (cmd);
 		return (NULL);
-	strcpy(copy, path);
+	}
 
+	copy = strdup(path);
 	token = strtok(copy, ":");
 	while (token)
 	{
+		full = malloc(strlen(token) + strlen(cmd) + 2);
 		strcpy(full, token);
 		strcat(full, "/");
 		strcat(full, cmd);
@@ -23,8 +28,9 @@ char *find_in_path(const char *cmd)
 		if (stat(full, &st) == 0)
 		{
 			free(copy);
-			return (strdup(full));
+			return (full);
 		}
+		free(full);
 		token = strtok(NULL, ":");
 	}
 	free(copy);
