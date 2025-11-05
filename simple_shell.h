@@ -1,5 +1,5 @@
-#ifndef SHELL_H
-#define SHELL_H
+#ifndef SIMPLE_SHELL_H
+#define SIMPLE_SHELL_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,10 +9,15 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-char **parse_line(char *line);
-void execute_command(char **args, char **env);
+extern char **environ;
+
+char *read_line(void);
+char **split_line(char *line);
+void execute_command(char **args);
 void print_prompt(void);
-char *read_input(void);
-void trim_whitespace(char *str);
+int _strlen(char *s);
+char *_strcpy(char *dest, char *src);
+char *_strcat(char *dest, char *src);
+int _strcmp(char *s1, char *s2);
 
 #endif
