@@ -45,11 +45,10 @@ void execute_command(char *command, char *program_name)
 			}
 			dir = strtok(NULL, ":");
 		}
-		free(path_copy);
 		if (!found)
 {
-	dprintf(STDERR_FILENO, "hsh: %s: not found\n", args[0]);
-	return;
+    dprintf(STDERR_FILENO, "hsh: %s: not found\n", args[0]);
+    exit(127);
 }
 	}
 	pid = fork();
