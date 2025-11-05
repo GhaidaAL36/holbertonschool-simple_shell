@@ -1,22 +1,23 @@
 #include "simple_shell.h"
 
 /**
- * execute_command - Execute a command with arguments and PATH support
- * @command: full input string
- * @program_name: program name for error messages
+ * execute_command - Execute a command with PATH support
+ * @command: user input
+ * @program_name: name of shell program for error prints
  */
 void execute_command(char *command, char *program_name)
 {
 	char *args[100];
+	char *cmd_copy = strdup(command);
 	char *token;
 	int i = 0;
 	char *path, *path_copy, *dir;
 	char full_path[1024];
-	int found = 0;
 	pid_t pid;
+	int found = 0;
 
-	/* Split input to arguments */
-	token = strtok(command, " ");
+	/* split input to args[] */
+	token = strtok(cmd_copy, " ");
 	while (token != NULL)
 	{
 		args[i++] = token;
@@ -24,8 +25,8 @@ void execute_command(char *command, char *program_name)
 	}
 	args[i] = NULL;
 
-	/* If command contains a '/' try direct exec first */
-	if (strchr(args[0], '/') != NULL)
+	/* case: absolute/relative path command */
+	if (strchr(args[0], '/'))
 	{
 		if (access(args[0], X_OK) == 0)
 		{
@@ -34,19 +35,26 @@ void execute_command(char *command, char *program_name)
 			{
 				execve(args[0], args, environ);
 				perror(program_name);
+				free(cmd_copy);
 				exit(1);
 			}
 			wait(NULL);
+			free(cmd_copy);
 			return;
 		}
 		dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
+		free(cmd_copy);
 		return;
 	}
 
-	/* Search in PATH */
+	/* search in PATH */
 	path = getenv("PATH");
 	if (!path)
+	{
+		free(cmd_copy);
 		return;
+	}
+
 	path_copy = strdup(path);
 	dir = strtok(path_copy, ":");
 
@@ -65,16 +73,19 @@ void execute_command(char *command, char *program_name)
 	if (!found)
 	{
 		dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
+		free(cmd_copy);
 		return;
 	}
 
-	/* Execute found command */
 	pid = fork();
 	if (pid == 0)
 	{
 		execve(full_path, args, environ);
 		perror(program_name);
+		free(cmd_copy);
 		exit(1);
 	}
+
 	wait(NULL);
+	free(cmd_copy);
 }
