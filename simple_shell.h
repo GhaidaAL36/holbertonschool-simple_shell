@@ -3,16 +3,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
+void print_prompt(void);
+ssize_t read_input(char **input, size_t *len);        /* getline-style */
+char *trim_whitespace(char *str);
+void execute_command(char *command, char *program_name);
+
 extern char **environ;
 
-void print_prompt(void);
-char *read_input(void);
-char *trim_whitespace(char *str);
-void execute_command(char *command, char **args, char *program_name);
-
-#endif
+#endif /* SIMPLE_SHELL_H */
