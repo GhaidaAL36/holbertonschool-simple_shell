@@ -1,59 +1,47 @@
 #include "main.h"
-/**
- * _err - checks and handles errors
- * @args: arguments to check
- * Return: void
- */
-
-void _err(char *args[])
-{
-	fprintf(stderr, "%s: command not found\n", args[0]);
-	perror("");
-	free(args[0]);
-	exit(98);
-}
-
 
 /**
- * exec - executes the input received
- * @args: arguments
- * @input: input
- * Return: void
+ * execute - create child and run command
+ * @argv: arguments array
  */
-
-void exec(char **args, char *input)
+void execute(char **argv)
 {
+	pid_t pid;
+	char *path;
 
-	int status;
-	pid_t childPid = 0;
+	if (!argv || !argv[0])
+		return;
 
-	if (access(args[0], X_OK) != 0)
-		_err(args);
-
-	childPid = fork();
-
-	if (childPid == -1)
+	/* built-in env */
+	if (strcmp(argv[0], "env") == 0)
 	{
-		perror("fork\n");
-		free(input);
-		free(args[0]);
-		exit(EXIT_FAILURE);
+		print_env();
+		return;
 	}
-	else if (childPid == 0)
+
+	path = argv[0];
+	if (path[0] != '/' && path[0] != '.')
 	{
-		execve(args[0], args, environ);
-		perror(args[0]);
-		free(args[0]);
-		exit(EXIT_FAILURE);
-	}
-	else
-	{
-		wait(&status);
-		if (WIFEXITED(status))
+		char *resolved = find_in_path(argv[0]);
+		if (resolved)
+			path = resolved;
+		else
 		{
-			free(args[0]);
-			free(input);
-			exit(WEXITSTATUS(status));
+			write(STDERR_FILENO, "not found\n", 10);
+			return;
 		}
 	}
+
+	pid = fork();
+	if (pid == 0)
+	{
+		if (execve(path, argv, environ) == -1)
+			perror("execve");
+		exit(127);
+	}
+	else if (pid > 0)
+		waitpid(pid, NULL, 0);
+
+	if (path != argv[0])
+		free(path);
 }
