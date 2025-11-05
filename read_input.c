@@ -3,7 +3,6 @@
 char *read_line(void)
 {
 	char *buf = NULL;
-	size_t size = 0;
 	ssize_t r = 0, i = 0;
 	char c;
 
@@ -24,20 +23,4 @@ char *read_line(void)
 		return (NULL);
 	}
 	return (buf);
-}
-
-char **split_line(char *line)
-{
-	char **tokens = malloc(sizeof(char *) * 64);
-	char *token;
-	int i = 0;
-
-	token = strtok(line, " \t\r\n");
-	while (token)
-	{
-		tokens[i++] = token;
-		token = strtok(NULL, " \t\r\n");
-	}
-	tokens[i] = NULL;
-	return (tokens);
 }
