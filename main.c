@@ -1,44 +1,48 @@
-#include "simple_shell.h"
+#include "main.h"
+
+/**
+ * main - The main function of the shell.
+ * Return: EXIT_SUCCESS on success or return code > 0 if error.
+ */
 
 int main(void)
 {
-	char *line;
-	char **args;
-	pid_t pid;
-	int status;
+	char *input_buffer = NULL, **myargv;
+	size_t size_allocated;
+	int char_read, ret = EXIT_SUCCESS;
 
-	while (1)
-	{
+	signal(SIGINT, SIG_IGN); /* ignore ctrl-C signal */
+	do {
 		if (isatty(STDIN_FILENO))
-			print_prompt();
+			printf("\033[0;39m#simple_shell(%d)$ ", getpid());
 
-		line = read_line();
-		if (!line)
-			break;
+		fflush(stdin);
+		char_read = getline(&input_buffer, &size_allocated, stdin);
 
-		args = split_line(line);
-		if (!args || !args[0])
+		if (char_read == 1)
+			continue;
+		if (char_read == EOF)
 		{
-			free(args);
-			free(line);
+			free(input_buffer);
+			if (isatty(STDIN_FILENO))
+				putchar('\n');
+			return (ret); /* exit shell with ctrl-D or | */
+		}
+
+		input_buffer[char_read - 1] = 0; /* overwrite \n */
+		if (strncmp(input_buffer, "env", 3) == 0)
+		{
+			print_env();
 			continue;
 		}
-
-		if (strcmp(args[0], "exit") == 0)
+		if (strncmp(input_buffer, "exit", 4) == 0)
 		{
-			free(args);
-			free(line);
-			break;
+			free(input_buffer);
+			return (ret); /* ret= return code of last cmd before exit */
 		}
-
-		pid = fork();
-		if (pid == 0)
-			execute_command(args);
-		else
-			waitpid(pid, &status, 0);
-
-		free(args);
-		free(line);
-	}
-	return (0);
+		myargv = fill_args(input_buffer);
+		if (myargv[0] != NULL)
+			ret = execute_command(myargv);
+		free(myargv);
+	} while (1);
 }
