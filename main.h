@@ -12,10 +12,9 @@
 extern char **environ;
 
 char *read_line(void);
-char **tokenize(char *line);
-int is_interactive(void);
-void execute(char **argv);
-char *handle_path(const char *cmd);
+char **split_line(char *line);
+void execute_command(char **args);
+char *find_path(char *command);
 void print_env(void);
 
 #endif
