@@ -11,5 +11,8 @@
 
 char **parse_line(char *line);
 void execute_command(char **args, char **env);
+void print_prompt(void);
+char *read_input(void);
+void trim_whitespace(char *str);
 
 #endif
