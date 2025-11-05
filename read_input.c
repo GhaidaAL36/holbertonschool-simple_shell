@@ -1,45 +1,41 @@
 #include "simple_shell.h"
 
 /**
- * read_input - reads a line from stdin
- * Return: pointer to the read line
+ * read_line - reads a line from stdin using read()
+ * Return: pointer to the line
  */
-char *read_input(void)
+char *read_line(void)
 {
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t read;
+	char *buffer;
+	size_t bufsize = 1024;
+	ssize_t bytes_read;
+	size_t i = 0;
+	char c;
 
-	read = getline(&line, &len, stdin);
-	if (read == -1)
-	{
-		free(line);
-		return (NULL);
-	}
-	return (line);
-}
-
-/**
- * parse_line - split input into arguments
- * @line: input string
- * Return: array of arguments
- */
-char **parse_line(char *line)
-{
-	char **args = NULL;
-	char *token;
-	int i = 0;
-
-	args = malloc(sizeof(char *) * 64);
-	if (!args)
+	buffer = malloc(sizeof(char) * bufsize);
+	if (!buffer)
 		return (NULL);
 
-	token = strtok(line, " \t\n");
-	while (token)
+	while (1)
 	{
-		args[i++] = token;
-		token = strtok(NULL, " \t\n");
+		bytes_read = read(STDIN_FILENO, &c, 1);
+		if (bytes_read == -1)
+		{
+			free(buffer);
+			return (NULL);
+		}
+		if (bytes_read == 0 || c == '\n')
+		{
+			buffer[i] = '\0';
+			return (buffer);
+		}
+		buffer[i++] = c;
+		if (i >= bufsize)
+		{
+			bufsize += 1024;
+			buffer = realloc(buffer, bufsize);
+			if (!buffer)
+				return (NULL);
+		}
 	}
-	args[i] = NULL;
-	return (args);
 }
