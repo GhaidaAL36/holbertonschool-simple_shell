@@ -72,7 +72,6 @@ void execute_command(char *command, char *program_name)
 		if (!found)
 {
 	dprintf(STDERR_FILENO, "hsh: %s: not found\n", args[0]);
-
 	return;
 }
 			}
