@@ -2,30 +2,25 @@
 
 /**
  * main - Entry point of simple shell
- * @ac: argument count
- * @av: argument vector
- * @env: environment variables
- *
- * Return: Always 0
+ * Return: 0 on success
  */
-int main(int ac, char **av, char **env)
+int main(void)
 {
-	char *line;
+	char *line = NULL;
 	char **args;
-	(void)ac;
-	(void)av;
+	pid_t pid;
+	int status;
 
 	while (1)
 	{
 		if (isatty(STDIN_FILENO))
 			print_prompt();
 
-		line = read_input();
+		line = read_line();
 		if (!line)
 			break;
 
-		trim_whitespace(line);
-		args = parse_line(line);
+		args = split_line(line);
 		if (!args || !args[0])
 		{
 			free(args);
@@ -33,14 +28,21 @@ int main(int ac, char **av, char **env)
 			continue;
 		}
 
-		if (strcmp(args[0], "exit") == 0)
+		if (_strcmp(args[0], "exit") == 0)
 		{
 			free(args);
 			free(line);
 			break;
 		}
 
-		execute_command(args, env);
+		pid = fork();
+		if (pid == 0)
+			execute_command(args);
+		else if (pid > 0)
+			waitpid(pid, &status, 0);
+		else
+			perror("fork");
+
 		free(args);
 		free(line);
 	}
