@@ -1,4 +1,4 @@
-#include "shell.h"
+#include "simple_shell.h"
 
 /**
  * execute_command - executes a command
@@ -11,7 +11,7 @@ void execute_command(char **args, char **env)
 	char *path_env, *path_copy, *token, full_path[1024];
 	struct stat st;
 
-	/* Check if the command includes '/' -> absolute or relative path */
+	/* If command contains '/' (absolute or relative path) */
 	if (strchr(command, '/') != NULL)
 	{
 		if (stat(command, &st) == 0)
@@ -27,7 +27,7 @@ void execute_command(char **args, char **env)
 		}
 	}
 
-	/* Get PATH environment variable */
+	/* Handle empty or missing PATH */
 	path_env = getenv("PATH");
 	if (path_env == NULL || *path_env == '\0')
 	{
