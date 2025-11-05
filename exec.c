@@ -1,35 +1,35 @@
 #include "main.h"
 
-void execute_command(char **args)
+/**
+ * execute - create child and run command
+ */
+void execute(char **args)
 {
-	pid_t pid;
-	char *path;
-	struct stat st;
+    pid_t pid;
+    char *cmd_path;
+    struct stat st;
 
-	if (!args || !args[0])
-		return;
+    if (stat(args[0], &st) == 0)
+        cmd_path = args[0];
+    else
+        cmd_path = find_path(args[0]);
 
-	if (stat(args[0], &st) == 0)
-		path = args[0];
-	else
-		path = find_path(args[0]);
+    if (!cmd_path)
+    {
+        perror(args[0]);
+        return;
+    }
 
-	if (!path)
-	{
-		write(STDERR_FILENO, "not found\n", 10);
-		return;
-	}
+    pid = fork();
+    if (pid == 0)
+    {
+        if (execve(cmd_path, args, environ) == -1)
+            perror("execve");
+        exit(EXIT_FAILURE);
+    }
+    else if (pid > 0)
+        waitpid(pid, NULL, 0);
 
-	pid = fork();
-	if (pid == 0)
-	{
-		if (execve(path, args, environ) == -1)
-			perror("execve");
-		exit(127);
-	}
-	else if (pid > 0)
-		waitpid(pid, NULL, 0);
-
-	if (path != args[0])
-		free(path);
+    if (cmd_path != args[0])
+        free(cmd_path);
 }
