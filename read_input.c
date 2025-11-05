@@ -1,0 +1,13 @@
+#include "simple_shell.h"
+
+/**
+ * read_input - Reads a line of input from the user.
+ * @input: Pointer to the buffer that stores user input.
+ * @len: Pointer to the size of the buffer.
+ *
+ * Return: Number of characters read, or -1 on failure.
+ */
+ssize_t read_input(char **input, size_t *len)
+{
+	return (getline(input, len, stdin));
+}
