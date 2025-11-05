@@ -1,26 +1,34 @@
-#include "simple_shell.h"
-
-char *read_line(void)
+/**
+ * split_line - split input string into tokens
+ * @line: input string
+ * Return: array of arguments (must be freed by caller)
+ */
+char **split_line(char *line)
 {
-	char *buf = NULL;
-	ssize_t r = 0, i = 0;
-	char c;
+	int bufsize = 64, i = 0;
+	char **tokens;
+	char *token;
 
-	buf = malloc(1024);
-	if (!buf)
+	if (!line)
 		return (NULL);
 
-	while ((r = read(STDIN_FILENO, &c, 1)) > 0)
-	{
-		if (c == '\n')
-			break;
-		buf[i++] = c;
-	}
-	buf[i] = '\0';
-	if (r == 0 && i == 0)
-	{
-		free(buf);
+	tokens = malloc(sizeof(char *) * bufsize);
+	if (!tokens)
 		return (NULL);
+
+	token = strtok(line, " \t\r\n");
+	while (token)
+	{
+		tokens[i++] = token;
+		if (i >= bufsize - 1)
+		{
+			bufsize *= 2;
+			tokens = realloc(tokens, sizeof(char *) * bufsize);
+			if (!tokens)
+				return (NULL);
+		}
+		token = strtok(NULL, " \t\r\n");
 	}
-	return (buf);
+	tokens[i] = NULL;
+	return (tokens);
 }
