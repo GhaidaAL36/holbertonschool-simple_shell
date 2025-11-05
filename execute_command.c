@@ -1,106 +1,54 @@
-#include "simple_shell.h"
-
-/* get PATH from environ manually */
-char *get_path_from_env(void)
-{
-	int i = 0;
-
-	while (environ[i])
-	{
-		if (strncmp(environ[i], "PATH=", 5) == 0)
-			return environ[i] + 5;
-		i++;
-	}
-	return (NULL);
-}
+#include "shell.h"
 
 /**
- * execute_command - Execute a command with PATH support
- * @command: input line
- * @program_name: shell name for errors
+ * execute_command - executes a command
+ * @args: array of arguments
+ * @env: environment variables
  */
-void execute_command(char *command, char *program_name)
+void execute_command(char **args, char **env)
 {
-	char *args[64];
-	char *cmd_copy = strdup(command);
-	char *token;
-	int i = 0;
-	char *path, *path_copy, *dir;
-	char full_path[1024];
-	int found = 0;
-	pid_t pid;
+	char *command = args[0];
+	char *path_env, *path_copy, *token, full_path[1024];
+	struct stat st;
 
-	/* tokenize safely (do NOT modify original command) */
-	token = strtok(cmd_copy, " ");
-	while (token)
+	/* Check if the command includes '/' -> absolute or relative path */
+	if (strchr(command, '/') != NULL)
 	{
-		args[i++] = token;
-		token = strtok(NULL, " ");
-	}
-	args[i] = NULL;
-
-	/* if command has '/', try direct exec */
-	if (strchr(args[0], '/'))
-	{
-		if (access(args[0], X_OK) == 0)
+		if (stat(command, &st) == 0)
 		{
-			pid = fork();
-			if (pid == 0)
-			{
-				execve(args[0], args, environ);
-				perror(program_name);
-				free(cmd_copy);
-				exit(1);
-			}
-			wait(NULL);
-			free(cmd_copy);
+			execve(command, args, env);
+			perror("./hsh");
+			exit(EXIT_FAILURE);
+		}
+		else
+		{
+			fprintf(stderr, "./hsh: %s: not found\n", command);
 			return;
 		}
-		dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
-		free(cmd_copy);
+	}
+
+	/* Get PATH environment variable */
+	path_env = getenv("PATH");
+	if (path_env == NULL || *path_env == '\0')
+	{
+		fprintf(stderr, "./hsh: %s: not found\n", command);
 		return;
 	}
 
-	/* PATH lookup using environ (NOT getenv) */
-	path = get_path_from_env();
-	if (!path)
+	path_copy = strdup(path_env);
+	token = strtok(path_copy, ":");
+	while (token)
 	{
-		free(cmd_copy);
-		return;
-	}
-	path_copy = strdup(path);
-	dir = strtok(path_copy, ":");
-
-	while (dir)
-	{
-		snprintf(full_path, sizeof(full_path), "%s/%s", dir, args[0]);
-		if (access(full_path, X_OK) == 0)
+		snprintf(full_path, sizeof(full_path), "%s/%s", token, command);
+		if (stat(full_path, &st) == 0)
 		{
-			found = 1;
-			break;
+			execve(full_path, args, env);
+			perror("./hsh");
+			free(path_copy);
+			exit(EXIT_FAILURE);
 		}
-		dir = strtok(NULL, ":");
+		token = strtok(NULL, ":");
 	}
-
+	fprintf(stderr, "./hsh: %s: not found\n", command);
 	free(path_copy);
-
-	if (!found)
-	{
-		dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
-		free(cmd_copy);
-		return;
-	}
-
-	/* execute */
-	pid = fork();
-	if (pid == 0)
-	{
-		execve(full_path, args, environ);
-		perror(program_name);
-		free(cmd_copy);
-		exit(1);
-	}
-
-	wait(NULL);
-	free(cmd_copy);
 }
