@@ -1,13 +1,45 @@
 #include "simple_shell.h"
 
 /**
- * read_input - Reads a line of input from the user.
- * @input: Pointer to the buffer that stores user input.
- * @len: Pointer to the size of the buffer.
- *
- * Return: Number of characters read, or -1 on failure.
+ * read_input - reads a line from stdin
+ * Return: pointer to the read line
  */
-ssize_t read_input(char **input, size_t *len)
+char *read_input(void)
 {
-	return (getline(input, len, stdin));
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t read;
+
+	read = getline(&line, &len, stdin);
+	if (read == -1)
+	{
+		free(line);
+		return (NULL);
+	}
+	return (line);
+}
+
+/**
+ * parse_line - split input into arguments
+ * @line: input string
+ * Return: array of arguments
+ */
+char **parse_line(char *line)
+{
+	char **args = NULL;
+	char *token;
+	int i = 0;
+
+	args = malloc(sizeof(char *) * 64);
+	if (!args)
+		return (NULL);
+
+	token = strtok(line, " \t\n");
+	while (token)
+	{
+		args[i++] = token;
+		token = strtok(NULL, " \t\n");
+	}
+	args[i] = NULL;
+	return (args);
 }
