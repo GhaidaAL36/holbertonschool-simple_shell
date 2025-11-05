@@ -1,37 +1,35 @@
-#include "shell.h"
+#include "simple_shell.h"
 
 /**
- * main - simple shell main loop
+ * main - Entry point of simple shell
  * @ac: argument count
  * @av: argument vector
  * @env: environment variables
  *
- * Return: 0 on success
+ * Return: Always 0
  */
 int main(int ac, char **av, char **env)
 {
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t read;
+	char *line;
 	char **args;
 	(void)ac;
+	(void)av;
 
 	while (1)
 	{
 		if (isatty(STDIN_FILENO))
-			write(STDOUT_FILENO, "$ ", 2);
+			print_prompt();
 
-		read = getline(&line, &len, stdin);
-		if (read == -1)
-		{
-			free(line);
-			exit(0);
-		}
+		line = read_input();
+		if (!line)
+			break;
 
+		trim_whitespace(line);
 		args = parse_line(line);
 		if (!args || !args[0])
 		{
 			free(args);
+			free(line);
 			continue;
 		}
 
@@ -39,13 +37,12 @@ int main(int ac, char **av, char **env)
 		{
 			free(args);
 			free(line);
-			exit(0);
+			break;
 		}
 
 		execute_command(args, env);
-
 		free(args);
+		free(line);
 	}
-	free(line);
 	return (0);
 }
