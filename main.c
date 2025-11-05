@@ -17,7 +17,7 @@ int main(int argc __attribute__((unused)), char *argv[])
 	if (isatty(STDIN_FILENO))
 		print_prompt();
 
-	nread = read_input(&input, &len);
+input = read_input();
 
 	while (nread != -1)
 	{
