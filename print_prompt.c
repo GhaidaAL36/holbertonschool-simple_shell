@@ -1,10 +1,9 @@
 #include "simple_shell.h"
-#include <stdio.h>
 
 /**
- * print_prompt - Prints the shell prompt to the user.
+ * print_prompt - prints the shell prompt
  */
 void print_prompt(void)
 {
-	printf("$: ");
+	write(STDOUT_FILENO, "$ ", 2);
 }
