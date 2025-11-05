@@ -150,8 +150,16 @@ int main(int argc __attribute__((unused)), char *argv[])
 
 		trimmed_input = trim_whitespace(input);
 
-		if (trimmed_input[0] != '\0')
-			execute_command(trimmed_input, argv[0]);
+/*  Handle exit built-in */
+if (strcmp(trimmed_input, "exit") == 0)
+{
+    free(input);  /* مهم جداً عشان ما يصير memory leak */
+    return 0;     /* خروج نظيف */
+}
+
+if (trimmed_input[0] != '\0')
+    execute_command(trimmed_input, argv[0]);
+
 
 		if (isatty(STDIN_FILENO))
 			print_prompt();
