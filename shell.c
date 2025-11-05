@@ -1,56 +1,65 @@
-#define _GNU_SOURCE
-
 #include "main.h"
 
-/**
- * spacesCheck - check if str contain only space
- * @str: string to check
- * Return: 0 on success or 1 on failure
- */
-
-int spacesCheck(const char *str)
+char *read_line(void)
 {
-	while (*str)
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t nread;
+
+	nread = getline(&line, &len, stdin);
+	if (nread == -1)
 	{
-		if (*str != ' ')
-			return (0);
-		str++;
+		free(line);
+		exit(0);
 	}
-	return (1);
+	return (line);
 }
 
-/**
- * main - main function for the shell
- * Return: 0 on success
- */
+char **tokenize(char *line)
+{
+	char **tokens, *token;
+	int i = 0;
+	size_t size = 64;
+
+	tokens = malloc(size * sizeof(char *));
+	if (!tokens)
+		exit(1);
+
+	token = strtok(line, " \t\r\n");
+	while (token)
+	{
+		tokens[i++] = token;
+		token = strtok(NULL, " \t\r\n");
+	}
+	tokens[i] = NULL;
+	return (tokens);
+}
 
 int main(void)
 {
-	char *input = NULL;
-	char *args[64] = { NULL };
-	size_t inputSize = 0;
-	ssize_t inputRead;
+	char *line, **args;
 
 	while (1)
 	{
 		if (isatty(STDIN_FILENO))
+			write(STDOUT_FILENO, "$ ", 2);
+		line = read_line();
+		args = tokenize(line);
+		if (!args[0])
 		{
-			printf("$ ");
-			fflush(stdout);
+			free(line);
+			free(args);
+			continue;
 		}
-
-		inputRead = getline(&input, &inputSize, stdin);
-		if (inputRead == EOF)
+		if (strcmp(args[0], "exit") == 0)
 		{
-			free(input);
-			exit(0);
+			free(line);
+			free(args);
+			break;
 		}
-
-		if (inputRead > 0 && input[inputRead - 1] == '\n')
-			input[inputRead - 1] = '\0';
-		if (spacesCheck(input) != 1)
-			tokenize(input, args);
+		execute(args);
+		free(line);
+		free(args);
 	}
-	free(input);
 	return (0);
 }
