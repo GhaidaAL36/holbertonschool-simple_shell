@@ -71,7 +71,7 @@ void execute_command(char *command, char *program_name)
 
 		if (!found)
 		{
-			fprintf(stderr, "%s: command not found\n", args[0]);
+	dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
 			return;
 		}
 	}
