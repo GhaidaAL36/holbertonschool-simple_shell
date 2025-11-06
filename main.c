@@ -1,7 +1,7 @@
 #include "main.h"
 
 /**
- * print_env - prints all environment variables
+ * print_env - Prints environment variables
  * Return: 0
  */
 int print_env(void)
@@ -18,11 +18,11 @@ int print_env(void)
 }
 
 /**
- * parse - split command line and execute
- * @command: user input
- * @envp: environment pointer (unused)
+ * parse - Parse input and execute commands
+ * @command: User input
+ * @envp: Environment variables
  */
-void parse(char command[], char **envp)
+void parse(char *command, char **envp)
 {
 	char *args[64];
 	char *token;
@@ -51,7 +51,7 @@ void parse(char command[], char **envp)
 }
 
 /**
- * main - simple shell main loop
+ * main - Simple shell main loop
  * Return: 0
  */
 int main(void)
