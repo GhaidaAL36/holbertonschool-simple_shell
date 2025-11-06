@@ -1,51 +1,42 @@
 #include "main.h"
 
-char *find_path(char *cmd)
+/**
+ * find_path - search command in PATH
+ * @command: command name
+ * Return: full path or NULL if not found
+ */
+char *find_path(char *command)
 {
-    char *path = NULL, *dir = NULL, *dup = NULL, *full = NULL;
-    int len;
-
-    if (access(cmd, X_OK) == 0)
-        return (strdup(cmd));
-
-    for (int i = 0; environ[i]; i++)
-    {
-        if (strncmp(environ[i], "PATH=", 5) == 0)
-        {
-            path = environ[i] + 5;
-            break;
-        }
-    }
+    char *path = getenv("PATH");
+    char *path_copy, *dir, *full_path;
+    size_t len;
 
     if (!path)
         return (NULL);
 
-    dup = strdup(path);
-    if (!dup)
-        return (NULL);
+    if (access(command, X_OK) == 0)
+        return (strdup(command));
 
-    dir = strtok(dup, ":");
+    path_copy = strdup(path);
+    dir = strtok(path_copy, ":");
     while (dir)
     {
-        len = strlen(dir) + strlen(cmd) + 2;
-        full = malloc(len);
-        if (!full)
-        {
-            free(dup);
-            return (NULL);
-        }
+        len = strlen(dir) + strlen(command) + 2;
+        full_path = malloc(len);
+        if (!full_path)
+            break;
 
-        sprintf(full, "%s/%s", dir, cmd);
-        if (access(full, X_OK) == 0)
-        {
-            free(dup);
-            return (full);
-        }
+        snprintf(full_path, len, "%s/%s", dir, command);
 
-        free(full);
+        if (access(full_path, X_OK) == 0)
+        {
+            free(path_copy);
+            return (full_path);
+        }
+        free(full_path);
         dir = strtok(NULL, ":");
     }
 
-    free(dup);
+    free(path_copy);
     return (NULL);
 }
