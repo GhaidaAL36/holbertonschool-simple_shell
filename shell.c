@@ -1,56 +1,48 @@
-#define _GNU_SOURCE
-
 #include "main.h"
 
 /**
- * spacesCheck - check if str contain only space
- * @str: string to check
- * Return: 0 on success or 1 on failure
- */
-
-int spacesCheck(const char *str)
-{
-	while (*str)
-	{
-		if (*str != ' ')
-			return (0);
-		str++;
-	}
-	return (1);
-}
-
-/**
- * main - main function for the shell
- * Return: 0 on success
+ * main - The main function of the shell.
+ * Return: EXIT_SUCCESS on success or return code > 0 if error.
  */
 
 int main(void)
 {
-	char *input = NULL;
-	char *args[64] = { NULL };
-	size_t inputSize = 0;
-	ssize_t inputRead;
+	char *input_buffer = NULL, **myargv;
+	size_t size_allocated;
+	int char_read, ret = EXIT_SUCCESS;
 
-	while (1)
-	{
+	signal(SIGINT, SIG_IGN); /* ignore ctrl-C signal */
+	do {
 		if (isatty(STDIN_FILENO))
+			printf("\033[0;39m#simple_shell(%d)$ ", getpid());
+
+		fflush(stdin);
+		char_read = getline(&input_buffer, &size_allocated, stdin);
+
+		if (char_read == 1)
+			continue;
+		if (char_read == EOF)
 		{
-			printf("$ ");
-			fflush(stdout);
+			free(input_buffer);
+			if (isatty(STDIN_FILENO))
+				putchar('\n');
+			return (ret); /* exit shell with ctrl-D or | */
 		}
 
-		inputRead = getline(&input, &inputSize, stdin);
-		if (inputRead == EOF)
+		input_buffer[char_read - 1] = 0; /* overwrite \n */
+		if (strncmp(input_buffer, "env", 3) == 0)
 		{
-			free(input);
-			exit(0);
+			print_env();
+			continue;
 		}
-
-		if (inputRead > 0 && input[inputRead - 1] == '\n')
-			input[inputRead - 1] = '\0';
-		if (spacesCheck(input) != 1)
-			tokenize(input, args);
-	}
-	free(input);
-	return (0);
+		if (strncmp(input_buffer, "exit", 4) == 0)
+		{
+			free(input_buffer);
+			return (ret); /* ret= return code of last cmd before exit */
+		}
+		myargv = fill_args(input_buffer);
+		if (myargv[0] != NULL)
+			ret = execute_command(myargv);
+		free(myargv);
+	} while (1);
 }
