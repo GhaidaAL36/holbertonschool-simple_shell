@@ -5,6 +5,8 @@ int main(void)
     char *line = NULL;
     size_t cap = 0;
     ssize_t n;
+    char **argv;
+    size_t i;
 
     while (1)
     {
@@ -19,18 +21,16 @@ int main(void)
         if (!*line || is_empty(line))
             continue;
 
-        char **argv = tokenize(line);
+        argv = tokenize(line);
         if (argv)
         {
             exec_command(argv);
-
-            /* free argv */
-            for (size_t i = 0; argv[i]; i++)
+            for (i = 0; argv[i]; i++)
                 free(argv[i]);
             free(argv);
         }
     }
 
     free(line);
-    return 0;
+    return (0);
 }
