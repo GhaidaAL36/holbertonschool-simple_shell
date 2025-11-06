@@ -1,4 +1,4 @@
-#include "simpleshell.h"
+#include "main.h"
 
 /**
  * parse - split command line into tokens
