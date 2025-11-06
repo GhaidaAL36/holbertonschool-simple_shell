@@ -1,102 +1,59 @@
 #include "main.h"
-
 /**
- * _getenv - get environment variable value
- * @name: variable name
- * Return: pointer to value or NULL
+ * _err - checks and handles errors
+ * @args: arguments to check
+ * Return: void
  */
-char *_getenv(const char *name)
-{
-	int i = 0;
-	size_t len = strlen(name);
 
-	while (environ[i])
-	{
-		if (strncmp(environ[i], name, len) == 0 && environ[i][len] == '=')
-			return (environ[i] + len + 1);
-		i++;
-	}
-	return (NULL);
+void _err(char *args[])
+{
+	fprintf(stderr, "%s: command not found\n", args[0]);
+	perror("");
+	free(args[0]);
+	exit(98);
 }
 
-/**
- * pathfinder - locate executable in PATH
- * @cmd: command
- * @command: argv array
- * Return: updated argv or NULL
- */
-char **pathfinder(char *cmd, char **command)
-{
-	char *path = _getenv("PATH");
-	char *dir, *dup, *full;
-	int len;
-
-	if (access(cmd, X_OK) == 0)
-	{
-		command[0] = cmd;
-		return (command);
-	}
-
-	if (!path)
-		return (NULL);
-
-	dup = strdup(path);
-	dir = strtok(dup, ":");
-	while (dir)
-	{
-		len = strlen(dir) + strlen(cmd) + 2;
-		full = malloc(len);
-		sprintf(full, "%s/%s", dir, cmd);
-		if (access(full, X_OK) == 0)
-		{
-			command[0] = full;
-			free(dup);
-			return (command);
-		}
-		free(full);
-		dir = strtok(NULL, ":");
-	}
-	free(dup);
-	return (NULL);
-}
 
 /**
- * execute - execute a command if valid
- * @command: argv array
- * @envp: environment (unused)
- * Return: 0 on success
+ * exec - executes the input received
+ * @args: arguments
+ * @input: input
+ * Return: void
  */
-int execute(char *const command[], char **envp)
+
+void exec(char **args, char *input)
 {
-	pid_t pid;
+
 	int status;
-	char **temp;
+	pid_t childPid = 0;
 
-	(void) envp;
-	temp = pathfinder(command[0], (char **) command);
-	if (!temp)
-	{
-		write(STDERR_FILENO, command[0], strlen(command[0]));
-		write(STDERR_FILENO, ": not found\n", 12);
-		return (127);
-	}
+	if (access(args[0], X_OK) != 0)
+		_err(args);
 
-	pid = fork();
-	if (pid == -1)
+	childPid = fork();
+
+	if (childPid == -1)
 	{
-		perror("fork");
-		return (1);
+		perror("fork\n");
+		free(input);
+		free(args[0]);
+		exit(EXIT_FAILURE);
 	}
-	if (pid == 0)
+	else if (childPid == 0)
 	{
-		execve(temp[0], (char *const *)command, environ);
-		perror(command[0]);
-		_exit(2);
+		execve(args[0], args, environ);
+		perror(args[0]);
+		free(args[0]);
+		exit(EXIT_FAILURE);
 	}
 	else
-		waitpid(pid, &status, 0);
-
-	if (temp[0] != command[0])
-		free(temp[0]);
-	return (0);
+	{
+		wait(&status);
+		if (WIFEXITED(status))
+		{
+			free(args[0]);
+			free(input);
+			exit(WEXITSTATUS(status));
+		}
+	}
 }
