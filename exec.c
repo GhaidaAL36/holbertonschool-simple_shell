@@ -1,50 +1,43 @@
-#include "main.h"
-
-/**
- * handle_path - Finds the path of the command to execute
- * @input: User input
- * Return: The full path of the command if found, NULL otherwise
- */
-
-char *handle_path(char *input)
+int execute(char *const command[], char **envp)
 {
-	int i = 0;
-	char *cache, *token, *result;
+	pid_t pid;
+	int status;
+	char **temp;
+	char *to_free = NULL;
 
-	if (strchr(input, '/') != NULL)
-		return (strdup(input));
-
-	while (environ[i] != NULL)
+	(void) envp;
+	temp = pathfinder(command[0], (char **) command);
+	if (!temp)
 	{
-		cache = strdup(environ[i]);
-		token = strtok(cache, "=");
-		if (strcmp(token, "PATH") == 0)
-		{
-			token = strtok(NULL, "=");
-			token = strtok(token, ":");
-			while (token != NULL)
-			{
-				result = malloc(strlen(token) + strlen(input) + 2);
-				if (result == NULL)
-				{
-					perror("Malloc is NULL");
-					return (NULL);
-				}
-				sprintf(result, "%s/%s", token, input);
-				if (access(result, X_OK) == 0)
-				{
-					free(cache);
-					return (result);
-				}
-
-				free(result);
-				token = strtok(NULL, ":");
-			}
-		}
-		free(cache);
-		i++;
+		write(STDERR_FILENO, command[0], strlen(command[0]));
+		write(STDERR_FILENO, ": not found\n", 12);
+		return (127);
 	}
 
-	free(input);
-	return (NULL);
+	/* إذا كان تم عمل malloc لمسار جديد */
+	if (temp[0] != command[0])
+		to_free = temp[0];
+
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork");
+		if (to_free)
+			free(to_free);
+		return (1);
+	}
+	if (pid == 0)
+	{
+		execve(temp[0], (char *const *)command, environ);
+		perror(command[0]);
+		if (to_free)
+			free(to_free);
+		_exit(2);
+	}
+	else
+		waitpid(pid, &status, 0);
+
+	if (to_free)
+		free(to_free);
+	return (0);
 }
