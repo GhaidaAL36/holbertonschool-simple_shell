@@ -1,29 +1,34 @@
 #include "main.h"
 
+/**
+ * main - simple shell
+ * Return: 0 on success
+ */
 int main(void)
 {
     char *line = NULL;
-    size_t size = 0;
+    size_t len = 0;
+    char **args;
     ssize_t nread;
-    char **argv;
 
     while (1)
     {
         if (isatty(STDIN_FILENO))
-            write(STDOUT_FILENO, "$ ", 2);
+            printf("$ ");
 
-        nread = getline(&line, &size, stdin);
+        nread = getline(&line, &len, stdin);
         if (nread == -1)
-            break;
-
-        if (line[0] != '\n')
         {
-            argv = tokenize(line);
-            execute(argv);
-            free(argv);
+            free(line);
+            exit(0);
         }
+
+        args = tokenize(line);
+        if (args[0])
+            execute(args);
+
+        free_tokens(args);
     }
 
-    free(line);
     return (0);
 }
