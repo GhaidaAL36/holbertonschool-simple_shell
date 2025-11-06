@@ -1,39 +1,37 @@
 #include "main.h"
 
-void execute(char **argv)
+/**
+ * execute - run a command
+ * @args: argument list
+ */
+void execute(char **args)
 {
     pid_t pid;
     char *path;
-    int status;
 
-    if (!argv || !argv[0])
+    if (!args || !args[0])
         return;
 
-    if (strcmp(argv[0], "exit") == 0)
-        exit(0);
-
-    path = find_path(argv[0]);
+    path = find_path(args[0]);
     if (!path)
+    {
+        fprintf(stderr, "%s: command not found\n", args[0]);
         return;
+    }
 
     pid = fork();
-    if (pid == -1)
-    {
-        perror("fork");
-        free(path);
-        return;
-    }
-
     if (pid == 0)
     {
-        execve(path, argv, environ);
-        perror(argv[0]);
-        _exit(1);
+        execve(path, args, environ);
+        perror("execve");
+        exit(EXIT_FAILURE);
+    }
+    else if (pid > 0)
+    {
+        waitpid(pid, NULL, 0);
     }
     else
-    {
-        waitpid(pid, &status, 0);
-    }
+        perror("fork");
 
     free(path);
 }
