@@ -1,9 +1,9 @@
 #include "main.h"
 
 /**
- * _getenv - get environment variable value
- * @name: variable name
- * Return: pointer to value or NULL
+ * _getenv - Get environment variable value
+ * @name: Variable name
+ * Return: Pointer to value or NULL
  */
 char *_getenv(const char *name)
 {
@@ -20,15 +20,14 @@ char *_getenv(const char *name)
 }
 
 /**
- * pathfinder - locate executable in PATH
- * @cmd: command name
- * @command: argv array
- * Return: updated argv or NULL
+ * pathfinder - Find executable file in PATH
+ * @cmd: Command
+ * @command: Command array
+ * Return: Modified argv or NULL
  */
 char **pathfinder(char *cmd, char **command)
 {
-	char *path = _getenv("PATH");
-	char *dir, *dup, *full;
+	char *path = _getenv("PATH"), *dir, *dup, *full;
 	int len;
 
 	if (access(cmd, X_OK) == 0)
@@ -42,6 +41,7 @@ char **pathfinder(char *cmd, char **command)
 
 	dup = strdup(path);
 	dir = strtok(dup, ":");
+
 	while (dir)
 	{
 		len = strlen(dir) + strlen(cmd) + 2;
@@ -52,6 +52,7 @@ char **pathfinder(char *cmd, char **command)
 			return (NULL);
 		}
 		sprintf(full, "%s/%s", dir, cmd);
+
 		if (access(full, X_OK) == 0)
 		{
 			command[0] = full;
@@ -66,12 +67,12 @@ char **pathfinder(char *cmd, char **command)
 }
 
 /**
- * execute - execute a given command
- * @command: argv array
- * @envp: environment (unused)
+ * execute - Execute a command
+ * @command: Command array
+ * @envp: Environment variables
  * Return: 0 on success
  */
-int execute(char *const command[], char **envp)
+int execute(char **command, char **envp)
 {
 	pid_t pid;
 	int status;
@@ -79,7 +80,7 @@ int execute(char *const command[], char **envp)
 	char *to_free = NULL;
 
 	(void) envp;
-	temp = pathfinder(command[0], (char **) command);
+	temp = pathfinder(command[0], command);
 	if (!temp)
 	{
 		write(STDERR_FILENO, command[0], strlen(command[0]));
@@ -100,7 +101,7 @@ int execute(char *const command[], char **envp)
 	}
 	if (pid == 0)
 	{
-		execve(temp[0], (char *const *)command, environ);
+		execve(temp[0], command, environ);
 		perror(command[0]);
 		if (to_free)
 			free(to_free);
