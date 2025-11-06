@@ -5,15 +5,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sched.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
 extern char **environ;
 
-int execute(char *const command[], char **envp);
-char *_getenv(const char *name);
-char **pathfinder(char *cmd, char **command);
-void parse(char command[], char **envp);
-int print_env(void);
+void exec(char **args, char *input);
+void tokenize(char *input, char *args[]);
+void handlePath(const char* path, int length);
+void printEnv(void);
+char *handle_path(char *input);
 
-#endif /* MAIN_H */
+#endif /*MAIN_H*/
