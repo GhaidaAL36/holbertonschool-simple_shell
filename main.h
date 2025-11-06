@@ -1,5 +1,5 @@
-#ifndef SIMPLE_SHELL
-#define SIMPLE_SHELL
+#ifndef MAIN_H
+#define MAIN_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,4 +16,4 @@ char **pathfinder(char *cmd, char **command);
 void parse(char command[], char **envp);
 int print_env(void);
 
-#endif /* SIMPLE_SHELL */
+#endif /* MAIN_H */
