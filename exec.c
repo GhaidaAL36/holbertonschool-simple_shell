@@ -1,59 +1,115 @@
 #include "main.h"
+
+
 /**
- * _err - checks and handles errors
- * @args: arguments to check
- * Return: void
+ * file_exist - Checks if a file exists.
+ * @file: The name of the file to check.
+ * Return: EXIT_SUCCESS if the file exists, EXIT_FAILURE otherwise.
  */
 
-void _err(char *args[])
+
+int file_exist(char *file)
 {
-	fprintf(stderr, "%s: command not found\n", args[0]);
-	perror("");
-	free(args[0]);
-	exit(98);
+	struct stat st;
+
+	if (stat(file, &st) == 0)
+		return (EXIT_SUCCESS);
+
+	return (EXIT_FAILURE);
 }
 
-
 /**
- * exec - executes the input received
- * @args: arguments
- * @input: input
- * Return: void
+ * find_cmd_path - finds full path of a command in PATH environment variable.
+ * @cmd: The command to find
+ * @work_buffer: The buffer to store the full path.
+ * Return: EXIT_SUCCESS if the command is found, EXIT_FAILURE otherwise.
  */
 
-void exec(char **args, char *input)
+int find_cmd_path(char *cmd, char *work_buffer)
 {
+	char *token;
+	char *var_path, *var_value_path;
+	/* Look if file exists only if command starts with "/" or "./" or "../"*/
+	/* If so, absolute path, no need to check the PATH. */
+	if ((cmd[0] == '/' || strncmp(cmd, "./", 2) == 0 ||
+		strncmp(cmd, "../", 3) == 0) && file_exist(cmd) == EXIT_SUCCESS)
+		return (EXIT_SUCCESS);
 
-	int status;
-	pid_t childPid = 0;
+	var_value_path = _getenv("PATH");
+	if (var_value_path == NULL)  /* If no PATH variable: like if PATH was unset */
+		return (EXIT_FAILURE);
+	if (strlen(var_value_path) == 0)/* if PATH= , defined but empty*/
+		return (EXIT_FAILURE);
 
-	if (access(args[0], X_OK) != 0)
-		_err(args);
+	var_path = strdup(var_value_path);
+	if (var_path == NULL)
+		return (EXIT_FAILURE);
 
-	childPid = fork();
-
-	if (childPid == -1)
+	token = strtok(var_path, ":");
+	while (token)
 	{
-		perror("fork\n");
-		free(input);
-		free(args[0]);
-		exit(EXIT_FAILURE);
-	}
-	else if (childPid == 0)
-	{
-		execve(args[0], args, environ);
-		perror(args[0]);
-		free(args[0]);
-		exit(EXIT_FAILURE);
-	}
-	else
-	{
-		wait(&status);
-		if (WIFEXITED(status))
+		if (sprintf(work_buffer, "%s/%s", token, cmd) < 0)
 		{
-			free(args[0]);
-			free(input);
-			exit(WEXITSTATUS(status));
+			free(var_path);
+			return (EXIT_FAILURE);
 		}
+		/*test if current PATH path+cmd exists*/
+		if (file_exist(work_buffer) == EXIT_SUCCESS)
+		{
+			free(var_path);
+			return (EXIT_SUCCESS);
+		}
+		token = strtok(NULL, ":");
 	}
+	free(var_path);
+	return (EXIT_FAILURE);
+}
+/**
+ * execute_command - Executes a command.
+ * @argv: The array of arguments for the command.
+ * Return: EXIT_SUCCESS on success, EXIT_FAILURE on failure.
+ */
+
+int execute_command(char **argv)
+{
+	pid_t child_pid;
+	int status;
+	char *cmd = argv[0], *work_buffer;
+
+	work_buffer = malloc(1024);
+	if (work_buffer == NULL)
+		return (shell_error());
+	/* init with received value cmd=argv[0] */
+	if (strcpy(work_buffer, cmd) != work_buffer)
+	{
+		free(work_buffer);
+		return (shell_error());
+	}
+	if (find_cmd_path(cmd, work_buffer) == EXIT_FAILURE)
+	{
+		fprintf(stderr, "./hsh: 1: %s: not found\n", cmd);
+		free(work_buffer);
+		return (127);
+	}
+	child_pid = fork();
+	if (child_pid == -1)
+	{
+		free(work_buffer);
+		return (shell_error());
+	}
+	if (child_pid == 0)
+	{
+		if (execve(work_buffer, argv, environ) == -1)
+		{
+			fprintf(stderr, "./hsh: 1: %s: not found\n", cmd);
+			free(work_buffer);
+			exit(127);
+		}
+		exit(EXIT_FAILURE);
+	}
+	wait(&status);
+	free(work_buffer);
+	if (WIFEXITED(status))
+		status = WEXITSTATUS(status); /* status of child */
+	return (status);
 }
