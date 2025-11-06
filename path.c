@@ -1,50 +1,47 @@
 #include "main.h"
 
-/* Find command in PATH, return malloc'd full path */
-char *find_in_path(const char *cmd)
+char *find_path(char *cmd)
 {
-    char *path, *dup, *dir, *full;
-    size_t cmdlen, dlen;
+    char *path = NULL, *dir = NULL, *dup = NULL, *full = NULL;
+    int len;
 
-    if (!cmd || !*cmd)
-        return (NULL);
+    if (access(cmd, X_OK) == 0)
+        return (strdup(cmd));
 
-    if (strchr(cmd, '/'))
+    for (int i = 0; environ[i]; i++)
     {
-        if (access(cmd, X_OK) == 0)
-            return (strdup(cmd));
-        return (NULL);
+        if (strncmp(environ[i], "PATH=", 5) == 0)
+        {
+            path = environ[i] + 5;
+            break;
+        }
     }
 
-    path = _getenv_val("PATH");
-    if (!path || !*path)
+    if (!path)
         return (NULL);
 
     dup = strdup(path);
     if (!dup)
         return (NULL);
 
-    cmdlen = strlen(cmd);
     dir = strtok(dup, ":");
     while (dir)
     {
-        dlen = strlen(dir);
-        full = malloc(dlen + cmdlen + 2);
+        len = strlen(dir) + strlen(cmd) + 2;
+        full = malloc(len);
         if (!full)
         {
             free(dup);
             return (NULL);
         }
-        memcpy(full, dir, dlen);
-        full[dlen] = '/';
-        memcpy(full + dlen + 1, cmd, cmdlen);
-        full[dlen + 1 + cmdlen] = '\0';
 
+        sprintf(full, "%s/%s", dir, cmd);
         if (access(full, X_OK) == 0)
         {
             free(dup);
             return (full);
         }
+
         free(full);
         dir = strtok(NULL, ":");
     }
