@@ -1,125 +1,102 @@
 #include "simpleshell.h"
 
-/*char *fullpath;*/
-
 /**
- * printerror - prints error
- * @command: command inserted
+ * _getenv - get environment variable value
+ * @name: variable name
+ * Return: pointer to value or NULL
  */
-
-void printerror(char *const command[])
+char *_getenv(const char *name)
 {
-	fprintf(stderr, "./hsh: 1: %s: not found\n", command[0]);
-	free(*command);
-	exit(127);
-}
+	int i = 0;
+	size_t len = strlen(name);
 
-/**
- * _getenv - get environment variable
- * @name: name of environment variable
- * @envp: pointer to environment variables
- * Return: pointer to environment variable
- */
-
-char *_getenv(const char *name, char **envp)
-{
-	char **env, *separator;
-
-	for (env = envp; *env != NULL; env++)
+	while (environ[i])
 	{
-		separator = strchr(*env, '=');
-		if (separator != NULL)
-		{
-			if (strncmp(*env, name, separator - *env) == 0)
-			{
-				return (separator + 1);
-			}
-		}
+		if (strncmp(environ[i], name, len) == 0 && environ[i][len] == '=')
+			return (environ[i] + len + 1);
+		i++;
 	}
 	return (NULL);
 }
 
 /**
- * pathfinder - finds the correct path for given alias
- * @command: given input to check for path
- * @cmd: argument
- * @envp: pointer to environment variables
- * Return: pointer to the string array or NULL if failed
+ * pathfinder - locate executable in PATH
+ * @cmd: command
+ * @command: argv array
+ * Return: updated argv or NULL
  */
-
-char **pathfinder(char *cmd, char **command, char **envp)
+char **pathfinder(char *cmd, char **command)
 {
-	char *current_path, *temp_path;
-	char *path_tok;
-	size_t arglen = strlen(cmd);
+	char *path = _getenv("PATH");
+	char *dir, *dup, *full;
+	int len;
 
-	fullpath = NULL;
-
-	if (strchr(cmd, '/') != NULL && access(cmd, F_OK) == 0)
+	if (access(cmd, X_OK) == 0)
 	{
 		command[0] = cmd;
 		return (command);
 	}
 
-	path_tok = NULL;
-	current_path = _getenv("PATH", envp);
-	temp_path = strdup(current_path);
-	path_tok = strtok(temp_path, ":");
+	if (!path)
+		return (NULL);
 
-	while (path_tok)
+	dup = strdup(path);
+	dir = strtok(dup, ":");
+	while (dir)
 	{
-		fullpath = malloc(arglen + strlen(path_tok) + 2);
-		sprintf(fullpath, "%s/%s", path_tok, cmd);
-		if (access(fullpath, F_OK) == 0)
+		len = strlen(dir) + strlen(cmd) + 2;
+		full = malloc(len);
+		sprintf(full, "%s/%s", dir, cmd);
+		if (access(full, X_OK) == 0)
 		{
-			command[0] = fullpath;
-			free(temp_path);
+			command[0] = full;
+			free(dup);
 			return (command);
 		}
-		path_tok = strtok(NULL, ":");
-		free(fullpath);
+		free(full);
+		dir = strtok(NULL, ":");
 	}
-	free(temp_path);
+	free(dup);
 	return (NULL);
 }
 
 /**
- * execute - function to execute commands
- * @command: input froom user
- * @envp: enviroment path
- * Return: -1 if failed and 0 if success
+ * execute - execute a command if valid
+ * @command: argv array
+ * @envp: environment (unused)
+ * Return: 0 on success
  */
-
 int execute(char *const command[], char **envp)
 {
-	pid_t id;
-	int status, i;
-	char **temp = pathfinder(command[0], (char **) command, envp);
+	pid_t pid;
+	int status;
+	char **temp;
 
-	if (temp != NULL)
+	(void) envp;
+	temp = pathfinder(command[0], (char **) command);
+	if (!temp)
 	{
-		id = fork();
-		if (id < 0)
-		{
-			perror("fork failed");
-			return (-1);
-		} else if (id == 0)
-		{
-			if (_getenv("PATH", envp) == NULL && access(command[0], F_OK) != 0)
-				printerror(command);
-			execve(temp[0], command, envp);
-			for (i = 0; command[i] != NULL; i++)
-				free(command[i]);
-			exit(EXIT_FAILURE);
-		}
-		wait(&status);
-		free(fullpath);
-	} else
-		printerror(command);
-	if (errno == -1)
-	{
-		free(*command);
-		exit(2);
+		write(STDERR_FILENO, command[0], strlen(command[0]));
+		write(STDERR_FILENO, ": not found\n", 12);
+		return (127);
 	}
+
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork");
+		return (1);
+	}
+	if (pid == 0)
+	{
+		execve(temp[0], (char *const *)command, environ);
+		perror(command[0]);
+		_exit(2);
+	}
+	else
+		waitpid(pid, &status, 0);
+
+	if (temp[0] != command[0])
+		free(temp[0]);
 	return (0);
 }
