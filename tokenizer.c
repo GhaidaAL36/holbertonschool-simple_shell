@@ -1,40 +1,45 @@
 #include "main.h"
 
-/**
- * tokenize - split command line into arguments
- */
-char **tokenize(char *line)
+/* split by spaces/tabs; returns NULL-terminated argv; malloc'd */
+char **tokenize(const char *line)
 {
-    char **args = NULL;
-    char *token = NULL;
-    int i = 0;
+    char *copy, *tok, **argv = NULL;
+    size_t cap = 0, len = 0;
 
-    args = malloc(sizeof(char *) * 64);
-    if (!args)
-        return (NULL);
+    if (!line) return NULL;
 
-    token = strtok(line, " \t\r\n");
-    while (token)
+    copy = strdup(line);
+    if (!copy) return NULL;
+
+    tok = strtok(copy, " \t");
+    while (tok)
     {
-        args[i] = strdup(token);
-        i++;
-        token = strtok(NULL, " \t\r\n");
+        if (len + 2 > cap) /* +1 for tok, +1 for NULL */
+        {
+            size_t newcap = cap ? cap * 2 : 8;
+            char **tmp = realloc(argv, newcap * sizeof(char *));
+            if (!tmp)
+            {
+                size_t i;
+                for (i = 0; i < len; i++) free(argv[i]);
+                free(argv);
+                free(copy);
+                return NULL;
+            }
+            argv = tmp;
+            cap = newcap;
+        }
+        argv[len++] = strdup(tok);
+        tok = strtok(NULL, " \t");
     }
-    args[i] = NULL;
-    return (args);
-}
 
-/**
- * free_args - free memory
- */
-void free_args(char **args)
-{
-    int i;
+    if (!argv) /* no tokens */
+    {
+        free(copy);
+        return NULL;
+    }
 
-    if (!args)
-        return;
-
-    for (i = 0; args[i]; i++)
-        free(args[i]);
-    free(args);
+    argv[len] = NULL;
+    free(copy);
+    return argv;
 }
