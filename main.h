@@ -1,4 +1,3 @@
-
 #ifndef SIMPLE_SHELL
 #define SIMPLE_SHELL
 
@@ -6,15 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
+extern char **environ;
+
 int execute(char *const command[], char **envp);
-int print_env(void);
-char *_getenv(const char *name, char **envp);
+char *_getenv(const char *name);
+char **pathfinder(char *cmd, char **command);
 void parse(char command[], char **envp);
+int print_env(void);
 
 #endif /* SIMPLE_SHELL */
