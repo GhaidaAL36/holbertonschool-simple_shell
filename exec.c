@@ -20,87 +20,78 @@ char *_getenv(const char *name)
 }
 
 /**
- * pathfinder - Find executable file in PATH
- * @cmd: Command
- * @command: Command array
- * Return: Modified argv or NULL
+ * find_path - Finds the executable full path
+ * @cmd: command name
+ * Return: malloc'd full path or NULL
  */
-char **pathfinder(char *cmd, char **command)
+char *find_path(char *cmd)
 {
-	char *path = _getenv("PATH"), *path_copy, *dir, full[512];
+	char *path = _getenv("PATH"), *copy, *dir, full[512];
 
 	if (!path)
 		return (NULL);
 
 	if (access(cmd, X_OK) == 0)
-	{
-		command[0] = cmd;
-		return (command);
-	}
+		return (strdup(cmd));
 
-	path_copy = strdup(path);
-	if (!path_copy)
+	copy = strdup(path);
+	if (!copy)
 		return (NULL);
 
-	dir = strtok(path_copy, ":");
+	dir = strtok(copy, ":");
 	while (dir)
 	{
 		snprintf(full, sizeof(full), "%s/%s", dir, cmd);
 		if (access(full, X_OK) == 0)
 		{
-			command[0] = strdup(full);
-			free(path_copy);
-			return (command);
+			free(copy);
+			return (strdup(full));
 		}
 		dir = strtok(NULL, ":");
 	}
-	free(path_copy);
+	free(copy);
 	return (NULL);
 }
 
 /**
- * execute - Execute a command
- * @command: Command array
- * @envp: Environment variables
- * Return: 0 on success
+ * execute - Executes a command
+ * @command: tokenized command
+ * @envp: environment
+ * Return: 0
  */
 int execute(char **command, char **envp)
 {
 	pid_t pid;
 	int status;
-	char *full_path = NULL;
+	char *full_path;
 
 	(void) envp;
-	pathfinder(command[0], command);
 
-	if (access(command[0], X_OK) != 0)
+	full_path = find_path(command[0]);
+	if (!full_path)
 	{
 		write(STDERR_FILENO, command[0], strlen(command[0]));
 		write(STDERR_FILENO, ": not found\n", 12);
 		return (127);
 	}
 
-	if (strchr(command[0], '/'))
-		full_path = command[0];
-
 	pid = fork();
 	if (pid == -1)
 	{
 		perror("fork");
-		if (full_path && full_path != command[0])
-			free(full_path);
+		free(full_path);
 		return (1);
 	}
 	if (pid == 0)
 	{
-		execve(command[0], command, environ);
+		execve(full_path, command, environ);
 		perror(command[0]);
+		free(full_path);
 		_exit(2);
 	}
 	else
 		waitpid(pid, &status, 0);
 
-	if (full_path && full_path != command[0])
-		free(full_path);
+	free(full_path);
 	return (0);
 }
