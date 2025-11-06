@@ -1,128 +1,81 @@
 #include "main.h"
 
-
 /**
- * _err - checks and handles errors
- * @args: arguments to check
- * Return: void
+ * parse - split command line into tokens
+ * @command: line input
+ * @envp: env (unused)
  */
-
-void _err(char *args[])
+void parse(char command[], char **envp)
 {
-	fprintf(stderr, "%s: command not found\n", args[0]);
-	perror("");
-	free(args[0]);
-	exit(98);
-}
-
-
-/**
- * exec - executes the input received
- * @args: arguments
- * @input: input
- * Return: void
- */
-
-void exec(char **args, char *input)
-{
-
-	int status, statusExit;
-	pid_t childPid = 0;
-
-	if (access(args[0], X_OK) != 0)
-		_err(args);
-
-	childPid = fork();
-
-	if (childPid == -1)
-	{
-		perror("fork\n");
-		free(input);
-		exit(0);
-	}
-	else if (childPid == 0)
-	{
-		execve(args[0], args, environ);
-		free(args[0]);
-		exit(0);
-	}
-	else
-	{
-		wait(&status);
-		if (WIFEXITED(status))
-		{
-			statusExit = WEXITSTATUS(status);
-			if (statusExit != 0)
-			{
-				free(args[0]);
-				free(input);
-				exit(0);
-			}
-		}
-	}
-}
-
-/**
- * printEnv - print the environment variables
- * Return: void
- */
-
-void printEnv(void)
-{
-	char **env;
-
-	for (env = environ; *env != NULL; env++)
-	{
-		printf("%s\n", *env);
-	}
-}
-
-/**
- * tokenize - function that splits a string into multiple ones
- * @input: users input
- * @args: arguments
- * Return: void
- */
-
-void tokenize(char *input, char *args[])
-{
+	char *args[64];
 	char *token;
-	unsigned int i = 0;
+	int i = 0;
 
-	token = strtok(input, " ");
-	while (token != NULL)
+	(void) envp;
+	token = strtok(command, " \t\n");
+	while (token)
 	{
-		args[i] = token;
-		i++;
-		token = strtok(NULL, " ");
+		args[i++] = token;
+		token = strtok(NULL, " \t\n");
 	}
 	args[i] = NULL;
 
-	if (args[0] == NULL)
-		exit(0);
-
-	if (strcmp(input, "env") == 0)
+	if (args[0])
 	{
-		printEnv();
-		return;
+		if (strcmp(args[0], "exit") == 0)
+			exit(0);
+		if (strcmp(args[0], "env") == 0)
+		{
+			print_env();
+			return;
+		}
+		execute(args, environ);
 	}
+}
 
-	if (strcmp(input, "exit") == 0 && args[1] == NULL)
-	{
-		free(args[0]);
-		exit(0);
-	}
+/**
+ * print_env - prints environment variables
+ * Return: 0
+ */
+int print_env(void)
+{
+	int i = 0;
 
-	token = strdup(args[0]);
-	args[0] = handle_path(args[0]);
-	if (args[0] != NULL)
+	while (environ[i])
 	{
-		free(token);
-		exec(args, input);
-		free(args[0]);
-		return;
+		write(STDOUT_FILENO, environ[i], strlen(environ[i]));
+		write(STDOUT_FILENO, "\n", 1);
+		i++;
 	}
-	free(token);
-	fprintf(stderr, "%s: command not found\n", args[0]);
-	exit(127);
+	return (0);
+}
+
+/**
+ * main - simple shell main loop
+ * Return: 0
+ */
+int main(void)
+{
+	char *line = NULL;
+	size_t size = 0;
+	ssize_t nread;
+
+	while (1)
+	{
+		if (isatty(STDIN_FILENO))
+			write(STDOUT_FILENO, "($) ", 4);
+
+		nread = getline(&line, &size, stdin);
+		if (nread == -1)
+		{
+			if (isatty(STDIN_FILENO))
+				write(STDOUT_FILENO, "\n", 1);
+			free(line);
+			break;
+		}
+		if (nread > 1)
+			parse(line, environ);
+	}
+	free(line);
+	return (0);
 }
