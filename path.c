@@ -1,31 +1,49 @@
 #include "main.h"
 
-/**
- * find_path - find full path for a command using PATH
- */
-char *find_path(char *command)
+/* return malloc'd full path if found in PATH, else NULL */
+char *find_in_path(const char *cmd)
 {
-    char *path = getenv("PATH");
-    char *token, *full_path;
-    struct stat st;
+    char *path, *dup, *dir, *full;
+    size_t cmdlen;
 
-    if (!path)
-        return (NULL);
+    if (!cmd || !*cmd) return NULL;
 
-    token = strtok(path, ":");
-    while (token)
+    /* if command contains '/' don't search PATH */
+    if (strchr(cmd, '/'))
     {
-        full_path = malloc(strlen(token) + strlen(command) + 2);
-        if (!full_path)
-            return (NULL);
-
-        sprintf(full_path, "%s/%s", token, command);
-        if (stat(full_path, &st) == 0)
-            return (full_path);
-
-        free(full_path);
-        token = strtok(NULL, ":");
+        if (access(cmd, X_OK) == 0)
+            return strdup(cmd);
+        return NULL;
     }
 
-    return (NULL);
+    path = _getenv_val("PATH");
+    if (!path || !*path) return NULL;
+
+    dup = strdup(path);
+    if (!dup) return NULL;
+
+    cmdlen = strlen(cmd);
+    dir = strtok(dup, ":");
+    while (dir)
+    {
+        size_t dlen = strlen(dir);
+        full = malloc(dlen + 1 + cmdlen + 1);
+        if (!full) { free(dup); return NULL; }
+
+        memcpy(full, dir, dlen);
+        full[dlen] = '/';
+        memcpy(full + dlen + 1, cmd, cmdlen);
+        full[dlen + 1 + cmdlen] = '\0';
+
+        if (access(full, X_OK) == 0)
+        {
+            free(dup);
+            return full; /* malloc'd */
+        }
+        free(full);
+        dir = strtok(NULL, ":");
+    }
+
+    free(dup);
+    return NULL;
 }
