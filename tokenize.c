@@ -1,43 +1,51 @@
 #include "main.h"
 
 /**
- * tokenize - splits a string into tokens and executes
- * @input: user input
- * @args: argument array
+ * tokenize - function that splits a string into multiple ones
+ * @input: users input
+ * @args: arguments
+ * Return: void
  */
+
 void tokenize(char *input, char *args[])
 {
 	char *token;
 	unsigned int i = 0;
 
-	token = strtok(input, " \t");
+	token = strtok(input, " ");
 	while (token != NULL)
 	{
-		args[i++] = token;
-		token = strtok(NULL, " \t");
+		args[i] = token;
+		i++;
+		token = strtok(NULL, " ");
 	}
 	args[i] = NULL;
 
 	if (args[0] == NULL)
-		return;
+		exit(0);
 
-	if (strcmp(args[0], "env") == 0)
+	if (strcmp(input, "env") == 0)
 	{
 		printEnv();
 		return;
 	}
-	if (strcmp(args[0], "exit") == 0 && args[1] == NULL)
+
+	if (strcmp(input, "exit") == 0 && args[1] == NULL)
 	{
-		free(input);
+		free(args[0]);
 		exit(0);
 	}
 
+	token = strdup(args[0]);
 	args[0] = handle_path(args[0]);
 	if (args[0] != NULL)
 	{
+		free(token);
 		exec(args, input);
 		free(args[0]);
+		return;
 	}
-	else
-		fprintf(stderr, "./hsh: 1: %s: not found\n", args[0]);
+	fprintf(stderr, "./hsh: 1: %s: not found\n", token);
+	free(token);
+	exit(127);
 }
