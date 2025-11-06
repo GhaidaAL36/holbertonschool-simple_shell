@@ -20,18 +20,23 @@ void execute(char **args)
     }
 
     pid = fork();
+    if (pid == -1)
+    {
+        perror("fork");
+        free(path);
+        return;
+    }
+
     if (pid == 0)
     {
-        execve(path, args, environ);
-        perror("execve");
+        if (execve(path, args, environ) == -1)
+            perror("execve");
         exit(EXIT_FAILURE);
     }
-    else if (pid > 0)
+    else
     {
         waitpid(pid, NULL, 0);
     }
-    else
-        perror("fork");
 
     free(path);
 }
