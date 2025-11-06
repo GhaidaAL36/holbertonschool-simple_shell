@@ -53,7 +53,7 @@ void exec(char **args, char *input)
 		{
 			free(args[0]);
 			free(input);
-			exit(WEXITSTATUS(status));
+		return; 
 		}
 	}
 }
