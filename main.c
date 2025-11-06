@@ -19,12 +19,14 @@ int main(void)
         nread = getline(&line, &len, stdin);
         if (nread == -1)
         {
+            if (isatty(STDIN_FILENO))
+                printf("\n");
             free(line);
             exit(0);
         }
 
         args = tokenize(line);
-        if (args[0])
+        if (args && args[0])
             execute(args);
 
         free_tokens(args);
