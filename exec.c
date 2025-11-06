@@ -27,8 +27,10 @@ char *_getenv(const char *name)
  */
 char **pathfinder(char *cmd, char **command)
 {
-	char *path = _getenv("PATH"), *dir, *dup, *full;
-	int len;
+	char *path = _getenv("PATH"), *path_copy, *dir, full[512];
+
+	if (!path)
+		return (NULL);
 
 	if (access(cmd, X_OK) == 0)
 	{
@@ -36,33 +38,23 @@ char **pathfinder(char *cmd, char **command)
 		return (command);
 	}
 
-	if (!path)
+	path_copy = strdup(path);
+	if (!path_copy)
 		return (NULL);
 
-	dup = strdup(path);
-	dir = strtok(dup, ":");
-
+	dir = strtok(path_copy, ":");
 	while (dir)
 	{
-		len = strlen(dir) + strlen(cmd) + 2;
-		full = malloc(len);
-		if (!full)
-		{
-			free(dup);
-			return (NULL);
-		}
-		sprintf(full, "%s/%s", dir, cmd);
-
+		snprintf(full, sizeof(full), "%s/%s", dir, cmd);
 		if (access(full, X_OK) == 0)
 		{
-			command[0] = full;
-			free(dup);
+			command[0] = strdup(full);
+			free(path_copy);
 			return (command);
 		}
-		free(full);
 		dir = strtok(NULL, ":");
 	}
-	free(dup);
+	free(path_copy);
 	return (NULL);
 }
 
@@ -76,41 +68,39 @@ int execute(char **command, char **envp)
 {
 	pid_t pid;
 	int status;
-	char **temp;
-	char *to_free = NULL;
+	char *full_path = NULL;
 
 	(void) envp;
-	temp = pathfinder(command[0], command);
-	if (!temp)
+	pathfinder(command[0], command);
+
+	if (access(command[0], X_OK) != 0)
 	{
 		write(STDERR_FILENO, command[0], strlen(command[0]));
 		write(STDERR_FILENO, ": not found\n", 12);
 		return (127);
 	}
 
-	if (temp[0] != command[0])
-		to_free = temp[0];
+	if (strchr(command[0], '/'))
+		full_path = command[0];
 
 	pid = fork();
 	if (pid == -1)
 	{
 		perror("fork");
-		if (to_free)
-			free(to_free);
+		if (full_path && full_path != command[0])
+			free(full_path);
 		return (1);
 	}
 	if (pid == 0)
 	{
-		execve(temp[0], command, environ);
+		execve(command[0], command, environ);
 		perror(command[0]);
-		if (to_free)
-			free(to_free);
 		_exit(2);
 	}
 	else
 		waitpid(pid, &status, 0);
 
-	if (to_free)
-		free(to_free);
+	if (full_path && full_path != command[0])
+		free(full_path);
 	return (0);
 }
