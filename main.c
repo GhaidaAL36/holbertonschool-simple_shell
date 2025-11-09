@@ -1,116 +1,48 @@
 #include "main.h"
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <stdio.h>
 
-/* main function for shell 0.4+ */
+/**
+	* main - entry point for simple shell
+	* @argc: argument count
+	* @argv: argument vector
+	* @envp: environment variables
+	*
+	* Return: last command exit status
+	*/
 int main(int argc, char **argv, char **envp)
 {
-    char *line;
-    size_t len;
-    ssize_t nread;
-    pid_t pid;
-    int status;
-    char *command;
-    char *path_cmd;
-    char *args[100];
-    int i;
-    char *token;
-    int wstatus;
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t nread;
+	char *command;
+	char *args[100];
+	int status = 0;
 
-    (void)argc;
-    (void)argv;
+	(void)argc;
+	(void)argv;
 
-    line = NULL;
-    len = 0;
-    status = 0;
+	while (1)
+	{
+	if (isatty(STDIN_FILENO))
+	write(STDOUT_FILENO, ":) ", 3);
 
-    while (1)
-    {
-        if (isatty(STDIN_FILENO))
-            write(STDOUT_FILENO, ":) ", 3);
+	nread = getline(&line, &len, stdin);
+	if (nread == -1)
+	{
+	if (isatty(STDIN_FILENO))
+	write(STDOUT_FILENO, "\n", 1);
+	break;
+	}
 
-        nread = getline(&line, &len, stdin);
-        if (nread == -1)
-        {
-            if (isatty(STDIN_FILENO))
-                write(STDOUT_FILENO, "\n", 1);
-            break;
-        }
+	command = trim(line);
+	if (!_isspace(command))
+	{
+	parse_command(command, args);
+	if (handle_builtins(args, line, envp, &status))
+	continue;
+	status = execute_command(args, envp);
+	}
+	}
 
-        command = trim(line);
-
-        if (!_isspace(command))
-        {
-            /* tokenize command */
-            i = 0;
-            token = strtok(command, " \t\n");
-            while (token != NULL && i < 99)
-            {
-                args[i++] = token;
-                token = strtok(NULL, " \t\n");
-            }
-            args[i] = NULL;
-
-            /* built-in exit */
-            if (strcmp(args[0], "exit") == 0)
-            {
-                free(line);
-                exit(status);
-            }
-
-            /* built-in env */
-            if (strcmp(args[0], "env") == 0)
-            {
-                int j = 0;
-                while (envp[j])
-                {
-                    write(STDOUT_FILENO, envp[j], strlen(envp[j]));
-                    write(STDOUT_FILENO, "\n", 1);
-                    j++;
-                }
-                continue;
-            }
-
-            /* external command */
-            path_cmd = find_command(args[0], envp);
-            if (!path_cmd)
-            {
-                write(STDERR_FILENO, "./hsh: 1: ", 10);
-                write(STDERR_FILENO, args[0], strlen(args[0]));
-                write(STDERR_FILENO, ": not found\n", 12);
-                status = 127;
-                continue;
-            }
-
-            pid = fork();
-            if (pid == -1)
-            {
-                perror("fork");
-                free(path_cmd);
-                continue;
-            }
-            else if (pid == 0)
-            {
-                execve(path_cmd, args, envp);
-                perror("execve");
-                _exit(EXIT_FAILURE);
-            }
-            else
-            {
-                wait(&wstatus);
-                if (WIFEXITED(wstatus))
-                    status = WEXITSTATUS(wstatus);
-                else
-                    status = 1;
-                free(path_cmd);
-            }
-        }
-    }
-
-    free(line);
-    return status;
+	free(line);
+	return (status);
 }
-
