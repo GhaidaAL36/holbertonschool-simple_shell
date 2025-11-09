@@ -12,6 +12,7 @@ int main(int argc, char **argv, char **envp)
     char *args[100];
     int i;
     char *token;
+    int wstatus;
 
     (void)argc;
     (void)argv;
@@ -78,8 +79,12 @@ if (!path_cmd)
             }
             else
             {
-                wait(&status);
-                free(path_cmd);
+		    wait(&wstatus);
+		    if (WIFEXITED(wstatus))
+			    status = WEXITSTATUS(wstatus);
+		    else
+			    status = 1;
+		    free(path_cmd);
             }
         }
     }
