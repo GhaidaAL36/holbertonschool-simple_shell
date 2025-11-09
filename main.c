@@ -1,5 +1,11 @@
 #include "main.h"
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <stdio.h>
 
+/* main function for shell 0.4+ */
 int main(int argc, char **argv, char **envp)
 {
     char *line;
@@ -48,21 +54,36 @@ int main(int argc, char **argv, char **envp)
             }
             args[i] = NULL;
 
-	    if (strcmp(args[0], "exit") == 0)
-	    {
-		    free(line);
+            /* built-in exit */
+            if (strcmp(args[0], "exit") == 0)
+            {
+                free(line);
                 exit(status);
-	    }
+            }
 
+            /* built-in env */
+            if (strcmp(args[0], "env") == 0)
+            {
+                int j = 0;
+                while (envp[j])
+                {
+                    write(STDOUT_FILENO, envp[j], strlen(envp[j]));
+                    write(STDOUT_FILENO, "\n", 1);
+                    j++;
+                }
+                continue;
+            }
+
+            /* external command */
             path_cmd = find_command(args[0], envp);
-if (!path_cmd)
-{
-    write(STDERR_FILENO, "./hsh: 1: ", 10);
-    write(STDERR_FILENO, args[0], strlen(args[0]));
-    write(STDERR_FILENO, ": not found\n", 12);
-    status = 127; /* set status for command not found */
-    continue;     /* skip execution */
-}
+            if (!path_cmd)
+            {
+                write(STDERR_FILENO, "./hsh: 1: ", 10);
+                write(STDERR_FILENO, args[0], strlen(args[0]));
+                write(STDERR_FILENO, ": not found\n", 12);
+                status = 127;
+                continue;
+            }
 
             pid = fork();
             if (pid == -1)
@@ -79,17 +100,17 @@ if (!path_cmd)
             }
             else
             {
-		    wait(&wstatus);
-		    if (WIFEXITED(wstatus))
-			    status = WEXITSTATUS(wstatus);
-		    else
-			    status = 1;
-		    free(path_cmd);
+                wait(&wstatus);
+                if (WIFEXITED(wstatus))
+                    status = WEXITSTATUS(wstatus);
+                else
+                    status = 1;
+                free(path_cmd);
             }
         }
     }
 
     free(line);
-    return (status);
+    return status;
 }
 
