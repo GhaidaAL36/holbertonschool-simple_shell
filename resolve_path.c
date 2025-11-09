@@ -38,17 +38,18 @@ int resolve_path(char **args, char *program_name)
 	return (0);
 	}
 
-	path_copy = strdup(path);
+	path_copy = _strdup(path);
 	if (!path_copy)
 	return (0);
 
 	dir = strtok(path_copy, ":");
 	while (dir != NULL)
 	{
-	snprintf(full_path, sizeof(full_path), "%s/%s", dir, args[0]);
+	sprintf(full_path, "%s/%s", dir, args[0]);
 	if (access(full_path, X_OK) == 0)
 	{
-	args[0] = strdup(full_path);
+	free(args[0]);
+	args[0] = _strdup(full_path);
 	free(path_copy);
 	return (1);
 	}
@@ -56,7 +57,7 @@ int resolve_path(char **args, char *program_name)
 	}
 
 	free(path_copy);
-	dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
+	fprintf(stderr, "%s: %s: not found\n", program_name, args[0]);
 	args[0] = NULL;
 	return (0);
 }

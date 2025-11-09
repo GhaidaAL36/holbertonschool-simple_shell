@@ -54,6 +54,7 @@ int resolve_path(char **args, char *program_name);
 	* @program_name: name of the shell program
 	*/
 void execute_command(char *command, char *program_name);
+char *_strdup(const char *s);
 
 #endif /* MAIN_H */
 
