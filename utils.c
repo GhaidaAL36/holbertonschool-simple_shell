@@ -1,24 +1,23 @@
 #include "main.h"
 
 /**
-	* _strdup - duplicates a string (replacement for strdup)
-	* @s: the string to duplicate
-	* Return: pointer to new string or NULL
+	* _isspace - checks if a string contains only spaces or tabs
+	* @s: input string
+	* Return: 1 if only spaces/tabs, 0 otherwise
 	*/
-char *_strdup(const char *s)
+int _isspace(char *s)
 {
-	char *dup;
-	size_t len;
+	int i = 0;
 
-	if (s == NULL)
-	return (NULL);
+	if (!s)
+		return (1);
 
-	len = strlen(s) + 1;
-	dup = malloc(len);
-	if (dup == NULL)
-	return (NULL);
-
-	memcpy(dup, s, len);
-	return (dup);
+	while (s[i])
+	{
+		if (s[i] != ' ' && s[i] != '\t')
+			return (0);
+		i++;
+	}
+	return (1);
 }
 

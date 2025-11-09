@@ -1,40 +1,69 @@
-#include <stddef.h>
 #include "main.h"
+
 /**
-	* main - Entry point of the simple shell.
-	* @argc: Argument count.
-	* @argv: Argument vector.
-	*
-	* Return: Always 0.
+	* main - simple UNIX command line interpreter
+	* @argc: argument count
+	* @argv: argument vector
+	* @envp: environment variables
+	* Return: 0 on success
 	*/
-int main(int argc __attribute__((unused)), char *argv[])
+int main(int argc, char **argv, char **envp)
 {
-	char *input = NULL;
+	char *line = NULL;
 	size_t len = 0;
 	ssize_t nread;
-	char *trimmed_input;
+	pid_t pid;
+	int status;
+	(void)argc;
 
-	if (isatty(STDIN_FILENO))
-	print_prompt();
-
-	nread = read_input(&input, &len);
-
-	while (nread != -1)
+	while (1)
 	{
-	if (nread > 1)
-	{
-	trimmed_input = trim_whitespace(input);
+		/* Print prompt only in interactive mode */
+		if (isatty(STDIN_FILENO))
+			write(STDOUT_FILENO, "#cisfun$ ", 9);
 
-	if (trimmed_input[0] != '\0')
-	execute_command(trimmed_input, argv[0]);
+		nread = getline(&line, &len, stdin);
+
+		/* Handle EOF (Ctrl+D) */
+		if (nread == -1)
+		{
+			if (isatty(STDIN_FILENO))
+				write(STDOUT_FILENO, "\n", 1);
+			break;
+		}
+
+		/* Remove trailing newline */
+		if (line[nread - 1] == '\n')
+			line[nread - 1] = '\0';
+
+		/* Ignore empty lines or spaces only */
+		if (_isspace(line))
+			continue;
+
+		pid = fork();
+		if (pid == -1)
+		{
+			perror(argv[0]);
+			continue;
+		}
+		if (pid == 0)
+		{
+			char *args[2];
+
+			args[0] = line;
+			args[1] = NULL;
+
+			if (execve(line, args, envp) == -1)
+			{
+				perror(argv[0]);
+				exit(EXIT_FAILURE);
+			}
+		}
+		else
+			wait(&status);
 	}
 
-	if (isatty(STDIN_FILENO))
-	print_prompt();
-
-	nread = read_input(&input, &len);
-	}
-
-	free(input);
+	free(line);
 	return (0);
 }
+
