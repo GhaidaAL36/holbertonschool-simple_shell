@@ -1,54 +1,64 @@
 #include "main.h"
 
 /**
- * tokenize - Split user input into arguments
- * @input: User input string
+ * handle_builtins - Handle builtin commands
  * @args: Argument vector
  *
- * Return: Nothing
+ * Return: 1 if handled, 0 otherwise
  */
-void tokenize(char *input, char *args[])
+int handle_builtins(char **args)
 {
-	char *token, *temp;
-	unsigned int i = 0;
-
-	token = strtok(input, " ");
-	while (token != NULL)
-	{
-		args[i] = token;
-		i++;
-		token = strtok(NULL, " ");
-	}
-	args[i] = NULL;
-
-	if (args[0] == NULL)
-		exit(0);
-
-	/* env builtin */
 	if (strcmp(args[0], "env") == 0 && args[1] == NULL)
 	{
 		printEnv();
-		return;
+		return (1);
 	}
 
-	/* exit builtin */
 	if (strcmp(args[0], "exit") == 0 && args[1] == NULL)
 	{
 		exit(0);
 	}
 
-	/* Handle PATH */
-	temp = strdup(args[0]);
-	args[0] = handle_path(args[0]);
+	return (0);
+}
 
-	if (args[0] != NULL)
+/**
+ * tokenize - Split input into arguments
+ * @input: Raw input string
+ * @args: Output argument array
+ *
+ * Return: Nothing
+ */
+void tokenize(char *input, char *args[])
+{
+	char *token, *tmp;
+	unsigned int i = 0;
+
+	token = strtok(input, " ");
+	while (token)
 	{
-		free(temp);
+		args[i++] = token;
+		token = strtok(NULL, " ");
+	}
+	args[i] = NULL;
+
+	if (args[0] == NULL)
+		return;
+
+	if (handle_builtins(args))
+		return;
+
+	tmp = strdup(args[0]);
+	args[0] = handle_path(tmp);
+
+	if (args[0])
+	{
 		exec(args, input);
+		free(tmp);
 		return;
 	}
 
-	fprintf(stderr, "./hsh: 1: %s: not found\n", temp);
-	free(temp);
+	fprintf(stderr, "./hsh: 1: %s: not found\n", tmp);
+	free(tmp);
 	exit(127);
 }
