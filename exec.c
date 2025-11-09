@@ -1,10 +1,11 @@
 #include "main.h"
-/**
- * _err - checks and handles errors
- * @args: arguments to check
- * Return: void
- */
 
+/**
+ * _err - Handle command errors
+ * @args: Argument vector
+ *
+ * Return: Nothing
+ */
 void _err(char *args[])
 {
 	fprintf(stderr, "%s: command not found\n", args[0]);
@@ -13,47 +14,40 @@ void _err(char *args[])
 	exit(98);
 }
 
-
 /**
- * exec - executes the input received
- * @args: arguments
- * @input: input
- * Return: void
+ * exec - Execute command from input
+ * @args: Argument vector
+ * @input: Raw user input
+ *
+ * Return: Nothing
  */
-
 void exec(char **args, char *input)
 {
-
 	int status;
-	pid_t childPid = 0;
+	pid_t child_pid;
 
 	if (access(args[0], X_OK) != 0)
 		_err(args);
 
-	childPid = fork();
-
-	if (childPid == -1)
+	child_pid = fork();
+	if (child_pid == -1)
 	{
-		perror("fork\n");
+		perror("fork");
 		free(input);
 		free(args[0]);
 		exit(EXIT_FAILURE);
 	}
-	else if (childPid == 0)
+
+	if (child_pid == 0)
 	{
 		execve(args[0], args, environ);
 		perror(args[0]);
 		free(args[0]);
 		exit(EXIT_FAILURE);
 	}
-	else
-	{
-		wait(&status);
-		if (WIFEXITED(status))
-		{
-			free(args[0]);
-			free(input);
-			exit(WEXITSTATUS(status));
-		}
-	}
+
+	wait(&status);
+
+	free(args[0]);
+	free(input);
 }
