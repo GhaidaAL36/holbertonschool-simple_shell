@@ -1,10 +1,10 @@
 #include "main.h"
 
 /**
- * printEnv - print the environment variables
- * Return: void
+ * printEnv - Print all environment variables
+ *
+ * Return: Nothing
  */
-
 void printEnv(void)
 {
 	char **env;
