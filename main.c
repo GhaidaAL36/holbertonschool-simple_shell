@@ -18,6 +18,7 @@ int main(int argc, char **argv, char **envp)
 
     line = NULL;
     len = 0;
+    status = 0;
 
     while (1)
     {
