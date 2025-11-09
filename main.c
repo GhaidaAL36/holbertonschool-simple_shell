@@ -49,9 +49,11 @@ int main(int argc, char **argv, char **envp)
             path_cmd = find_command(args[0], envp);
             if (!path_cmd)
             {
-                write(STDERR_FILENO, args[0], strlen(args[0]));
-                write(STDERR_FILENO, ": command not found\n", 20);
-                continue;
+                    write(STDERR_FILENO, "./hsh: 1: ", 10);
+    write(STDERR_FILENO, args[0], strlen(args[0]));
+    write(STDERR_FILENO, ": not found\n", 12);
+    status = 127; /* set status for command not found */
+    continue;
             }
 
             pid = fork();

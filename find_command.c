@@ -1,5 +1,11 @@
 #include "main.h"
 
+/**
+ * find_command - finds the full path of a command
+ * @cmd: the command to find
+ * @envp: environment variables
+ * Return: full path string (malloced) or NULL if not found
+ */
 char *find_command(char *cmd, char **envp)
 {
     char *path_env, *path_dup, *dir;
@@ -8,20 +14,23 @@ char *find_command(char *cmd, char **envp)
     if (!cmd)
         return NULL;
 
-    if (strchr(cmd, '/')) /* absolute or relative path */
+    /* If command contains '/', treat it as absolute or relative path */
+    if (strchr(cmd, '/'))
     {
-        if (is_executable(cmd))
+        if (access(cmd, X_OK) == 0)
         {
             full_path = malloc(strlen(cmd) + 1);
-            if (full_path)
-                strcpy(full_path, cmd);
+            if (!full_path)
+                return NULL;
+            strcpy(full_path, cmd);
             return full_path;
         }
         return NULL;
     }
 
+    /* Get PATH from environment */
     path_env = get_path_env(envp);
-    if (!path_env)
+    if (!path_env || path_env[0] == '\0') /* empty PATH */
         return NULL;
 
     path_dup = malloc(strlen(path_env) + 1);
@@ -39,7 +48,7 @@ char *find_command(char *cmd, char **envp)
             return NULL;
         }
         sprintf(full_path, "%s/%s", dir, cmd);
-        if (is_executable(full_path))
+        if (access(full_path, X_OK) == 0)
         {
             free(path_dup);
             return full_path;
@@ -47,6 +56,7 @@ char *find_command(char *cmd, char **envp)
         free(full_path);
         dir = strtok(NULL, ":");
     }
+
     free(path_dup);
     return NULL;
 }
