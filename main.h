@@ -10,10 +10,12 @@
 
 extern char **environ;
 
-/* Function prototypes */
-void exec(char **args, char *input);
-void tokenize(char *input, char *args[]);
-void printEnv(void);
-char *handle_path(char *input);
+void print_prompt(void);
+ssize_t read_input(char **input, size_t *len);
+char *trim_whitespace(char *str);
+void split_args(char *command, char **args);
+int resolve_path(char **args, char *program_name);
+void execute_command(char *command, char *program_name);
+>>>>>>> ced936d (fixing all files)
 
 #endif /* MAIN_H */
