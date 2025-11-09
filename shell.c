@@ -1,13 +1,12 @@
 #define _GNU_SOURCE
-
 #include "main.h"
 
 /**
- * spacesCheck - check if str contain only space
- * @str: string to check
- * Return: 0 on success or 1 on failure
+ * spacesCheck - Check if a string contains only spaces
+ * @str: String to check
+ *
+ * Return: 1 if only spaces, 0 otherwise
  */
-
 int spacesCheck(const char *str)
 {
 	while (*str)
@@ -20,16 +19,16 @@ int spacesCheck(const char *str)
 }
 
 /**
- * main - main function for the shell
- * Return: 0 on success
+ * main - Entry point for the simple shell
+ *
+ * Return: Always 0
  */
-
 int main(void)
 {
 	char *input = NULL;
-	char *args[64] = { NULL };
-	size_t inputSize = 0;
-	ssize_t inputRead;
+	char *args[64] = {NULL};
+	size_t input_size = 0;
+	ssize_t input_read;
 
 	while (1)
 	{
@@ -39,18 +38,21 @@ int main(void)
 			fflush(stdout);
 		}
 
-		inputRead = getline(&input, &inputSize, stdin);
-		if (inputRead == EOF)
+		input_read = getline(&input, &input_size, stdin);
+
+		if (input_read == EOF)
 		{
 			free(input);
 			exit(0);
 		}
 
-		if (inputRead > 0 && input[inputRead - 1] == '\n')
-			input[inputRead - 1] = '\0';
-		if (spacesCheck(input) != 1)
+		if (input_read > 0 && input[input_read - 1] == '\n')
+			input[input_read - 1] = '\0';
+
+		if (!spacesCheck(input))
 			tokenize(input, args);
 	}
+
 	free(input);
 	return (0);
 }
