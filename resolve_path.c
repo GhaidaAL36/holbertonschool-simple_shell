@@ -1,9 +1,17 @@
 #include "main.h"
 
 /**
-	* resolve_path - Finds the full executable path for a command if needed.
-	* Return: 1 if found or command already valid, 0 if not found.
-	*/
+ * resolve_path - resolves the full path of a command
+ * @args: array of command arguments, first element is the command
+ * @program_name: name of the shell program
+ *
+ * This function checks if the command exists and is executable.
+ * If not an absolute path, it searches through directories in PATH.
+ * If found, args[0] is replaced with the full path.
+ * Otherwise, prints an error message.
+ *
+ * Return: 1 if the command is found and executable, 0 otherwise
+ */
 int resolve_path(char **args, char *program_name)
 {
 	char *path, *path_copy, *dir;
