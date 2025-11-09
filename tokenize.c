@@ -1,15 +1,15 @@
 #include "main.h"
 
 /**
- * tokenize - function that splits a string into multiple ones
- * @input: users input
- * @args: arguments
- * Return: void
+ * tokenize - Split user input into arguments
+ * @input: User input string
+ * @args: Argument vector
+ *
+ * Return: Nothing
  */
-
 void tokenize(char *input, char *args[])
 {
-	char *token;
+	char *token, *temp;
 	unsigned int i = 0;
 
 	token = strtok(input, " ");
@@ -24,28 +24,31 @@ void tokenize(char *input, char *args[])
 	if (args[0] == NULL)
 		exit(0);
 
-	if (strcmp(input, "env") == 0)
+	/* env builtin */
+	if (strcmp(args[0], "env") == 0 && args[1] == NULL)
 	{
 		printEnv();
 		return;
 	}
 
-	if (strcmp(input, "exit") == 0 && args[1] == NULL)
+	/* exit builtin */
+	if (strcmp(args[0], "exit") == 0 && args[1] == NULL)
 	{
-		free(args[0]);
 		exit(0);
 	}
 
-	token = strdup(args[0]);
+	/* Handle PATH */
+	temp = strdup(args[0]);
 	args[0] = handle_path(args[0]);
+
 	if (args[0] != NULL)
 	{
-		free(token);
+		free(temp);
 		exec(args, input);
-		free(args[0]);
 		return;
 	}
-	fprintf(stderr, "./hsh: 1: %s: not found\n", token);
-	free(token);
+
+	fprintf(stderr, "./hsh: 1: %s: not found\n", temp);
+	free(temp);
 	exit(127);
 }
