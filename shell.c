@@ -56,3 +56,75 @@ int main(void)
 	free(input);
 	return (0);
 }
+#include "main.h"
+
+/**
+ * main - Simple Shell 0.1
+ *
+ * Return: 0
+ */
+int main(void)
+{
+	char *input = NULL;
+	size_t size = 0;
+	ssize_t nread;
+	pid_t pid;
+	int status;
+
+	while (1)
+	{
+		/* Display prompt */
+		if (isatty(STDIN_FILENO))
+			printf("$ ");
+
+		/* Read input */
+		nread = getline(&input, &size, stdin);
+
+		/* Handle Ctrl+D */
+		if (nread == -1)
+		{
+			free(input);
+			exit(0);
+		}
+
+		/* Remove newline */
+		if (input[nread - 1] == '\n')
+			input[nread - 1] = '\0';
+
+		/* Ignore empty line */
+		if (input[0] == '\0')
+			continue;
+
+		/* Check if file exists and executable */
+		if (access(input, X_OK) != 0)
+		{
+			perror("./hsh");
+			continue;
+		}
+
+		/* Create child process */
+		pid = fork();
+		if (pid == -1)
+		{
+			perror("fork");
+			continue;
+		}
+
+		if (pid == 0)
+		{
+			/* Execute command */
+			execve(input, NULL, environ);
+			perror("./hsh");
+			exit(1);
+		}
+		else
+		{
+			/* Parent waits */
+			waitpid(pid, &status, 0);
+		}
+	}
+
+	free(input);
+	return (0);
+}
+
