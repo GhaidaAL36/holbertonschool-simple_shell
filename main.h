@@ -16,6 +16,5 @@ char *trim_whitespace(char *str);
 void split_args(char *command, char **args);
 int resolve_path(char **args, char *program_name);
 void execute_command(char *command, char *program_name);
->>>>>>> ced936d (fixing all files)
 
 #endif /* MAIN_H */
