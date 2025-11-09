@@ -9,61 +9,68 @@
 	*/
 int main(int argc, char **argv, char **envp)
 {
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t nread;
-	pid_t pid;
-	int status;
-	(void)argc;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t nread;
+    pid_t pid;
+    int status;
+    char *command; /* Move declaration here */
+    (void)argc;
 
-	while (1)
-	{
-	if (isatty(STDIN_FILENO))
-	write(STDOUT_FILENO, "#cisfun$ ", 9);
+    while (1)
+    {
+        if (isatty(STDIN_FILENO))
+            write(STDOUT_FILENO, "#cisfun$ ", 9);
 
-	nread = getline(&line, &len, stdin);
-	if (nread == -1)
-	{
-	if (isatty(STDIN_FILENO))
-	write(STDOUT_FILENO, "\n", 1);
-	break;
-	}
+        nread = getline(&line, &len, stdin);
+        if (nread == -1)
+        {
+            if (isatty(STDIN_FILENO))
+                write(STDOUT_FILENO, "\n", 1);
+            break;
+        }
 
-	/* Trim spaces and newline */
-	line = trim(line);
-	if (_isspace(line))
-	continue;
+        /* Split input into lines to handle multiple commands */
+        command = strtok(line, "\n");
+        while (command != NULL)
+        {
+            command = trim(command);
 
-	pid = fork();
-	if (pid == -1)
-	{
-	perror(argv[0]);
-	continue;
-	}
+            if (!_isspace(command))
+            {
+                pid = fork();
+                if (pid == -1)
+                {
+                    perror(argv[0]);
+                }
+                else if (pid == 0)
+                {
+                    char *args[100];
+                    int i = 0;
+                    char *token = strtok(command, " \t");
+                    while (token != NULL && i < 99)
+                    {
+                        args[i++] = token;
+                        token = strtok(NULL, " \t");
+                    }
+                    args[i] = NULL;
 
-	if (pid == 0)
-	{
-	char *args[100];
-	int i = 0;
-	char *token = strtok(line, " \t\n");
+                    if (execve(args[0], args, envp) == -1)
+                    {
+                        perror(argv[0]);
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                else
+                {
+                    wait(&status);
+                }
+            }
 
-	while (token != NULL && i < 99)
-	{
-	args[i++] = token;
-	token = strtok(NULL, " \t\n");
-	}
-	args[i] = NULL;
+            command = strtok(NULL, "\n");
+        }
+    }
 
-	if (execve(args[0], args, envp) == -1)
-	{
-	perror(argv[0]);
-	exit(EXIT_FAILURE);
-	}
-	}
-	else
-	wait(&status);
-	}
-
-	free(line);
-	return (0);
+    free(line);
+    return 0;
 }
