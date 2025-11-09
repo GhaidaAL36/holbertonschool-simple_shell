@@ -1,16 +1,16 @@
 #include "main.h"
 
 /**
- * execute_command - executes a command
- * @command: command string to execute
- * @program_name: name of the shell program
- *
- * This function splits the command into arguments, resolves the full
- * path, forks a child process, and executes the command using execve.
- * The parent process waits for the child to finish.
- *
- * Return: void
- */
+	* execute_command - executes a command using fork and execve
+	* @command: command string input by the user
+	* @program_name: name of the shell program
+	*
+	* This function splits the command into arguments, resolves the full path,
+	* and executes it in a child process using fork. The parent waits for the
+	* child process to finish. If the command does not exist, fork is not called.
+	*
+	* Return: void
+	*/
 void execute_command(char *command, char *program_name)
 {
 	char *args[200];
@@ -41,3 +41,4 @@ void execute_command(char *command, char *program_name)
 	else
 	wait(NULL);
 }
+
