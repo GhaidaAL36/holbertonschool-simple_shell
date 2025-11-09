@@ -46,6 +46,12 @@ int main(int argc, char **argv, char **envp)
             }
             args[i] = NULL;
 
+	    if (strcmp(args[0], "exit") == 0)
+	    {
+		    free(line);
+                exit(status);
+	    }
+
             path_cmd = find_command(args[0], envp);
 if (!path_cmd)
 {
