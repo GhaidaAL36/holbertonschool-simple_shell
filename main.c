@@ -1,12 +1,5 @@
 #include "main.h"
 
-/**
- * main - simple UNIX command line interpreter
- * @argc: argument count
- * @argv: argument vector
- * @envp: environment variables
- * Return: 0 on success
- */
 int main(int argc, char **argv, char **envp)
 {
     char *line;
@@ -21,6 +14,7 @@ int main(int argc, char **argv, char **envp)
     char *token;
 
     (void)argc;
+    (void)argv;
 
     line = NULL;
     len = 0;
@@ -39,8 +33,10 @@ int main(int argc, char **argv, char **envp)
         }
 
         command = trim(line);
+
         if (!_isspace(command))
         {
+            /* tokenize command */
             i = 0;
             token = strtok(command, " \t\n");
             while (token != NULL && i < 99)
@@ -50,27 +46,26 @@ int main(int argc, char **argv, char **envp)
             }
             args[i] = NULL;
 
-            /* Find command in PATH */
             path_cmd = find_command(args[0], envp);
             if (!path_cmd)
             {
-                fprintf(stderr, "%s: command not found\n", args[0]);
-                continue; /* do NOT fork if command does not exist */
+                write(STDERR_FILENO, args[0], strlen(args[0]));
+                write(STDERR_FILENO, ": command not found\n", 20);
+                continue;
             }
 
             pid = fork();
             if (pid == -1)
             {
-                perror(argv[0]);
+                perror("fork");
                 free(path_cmd);
                 continue;
             }
             else if (pid == 0)
             {
                 execve(path_cmd, args, envp);
-                perror(argv[0]);
-                free(path_cmd);
-                exit(EXIT_FAILURE);
+                perror("execve");
+                _exit(EXIT_FAILURE);
             }
             else
             {
