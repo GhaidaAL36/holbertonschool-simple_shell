@@ -34,7 +34,6 @@ int resolve_path(char **args, char *program_name)
 	path = get_path();
 	if (!path || path[0] == '\0')
 	{
-	dprintf(STDERR_FILENO, "%s: %s: not found\n", program_name, args[0]);
 	args[0] = NULL;
 	return (0);
 	}
