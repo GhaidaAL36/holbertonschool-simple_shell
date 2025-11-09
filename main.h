@@ -10,6 +10,7 @@
 
 /* Prototypes */
 int _isspace(char *s);
+char *trim(char *str);
 
 #endif /* MAIN_H */
 

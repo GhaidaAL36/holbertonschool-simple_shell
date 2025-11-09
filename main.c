@@ -18,52 +18,52 @@ int main(int argc, char **argv, char **envp)
 
 	while (1)
 	{
-		/* Print prompt only in interactive mode */
-		if (isatty(STDIN_FILENO))
-			write(STDOUT_FILENO, "#cisfun$ ", 9);
+	if (isatty(STDIN_FILENO))
+	write(STDOUT_FILENO, "#cisfun$ ", 9);
 
-		nread = getline(&line, &len, stdin);
+	nread = getline(&line, &len, stdin);
+	if (nread == -1)
+	{
+	if (isatty(STDIN_FILENO))
+	write(STDOUT_FILENO, "\n", 1);
+	break;
+	}
 
-		/* Handle EOF (Ctrl+D) */
-		if (nread == -1)
-		{
-			if (isatty(STDIN_FILENO))
-				write(STDOUT_FILENO, "\n", 1);
-			break;
-		}
+	/* Trim spaces and newline */
+	line = trim(line);
+	if (_isspace(line))
+	continue;
 
-		/* Remove trailing newline */
-		if (line[nread - 1] == '\n')
-			line[nread - 1] = '\0';
+	pid = fork();
+	if (pid == -1)
+	{
+	perror(argv[0]);
+	continue;
+	}
 
-		/* Ignore empty lines or spaces only */
-		if (_isspace(line))
-			continue;
+	if (pid == 0)
+	{
+	char *args[100];
+	int i = 0;
+	char *token = strtok(line, " \t\n");
 
-		pid = fork();
-		if (pid == -1)
-		{
-			perror(argv[0]);
-			continue;
-		}
-		if (pid == 0)
-		{
-			char *args[2];
+	while (token != NULL && i < 99)
+	{
+	args[i++] = token;
+	token = strtok(NULL, " \t\n");
+	}
+	args[i] = NULL;
 
-			args[0] = line;
-			args[1] = NULL;
-
-			if (execve(line, args, envp) == -1)
-			{
-				perror(argv[0]);
-				exit(EXIT_FAILURE);
-			}
-		}
-		else
-			wait(&status);
+	if (execve(args[0], args, envp) == -1)
+	{
+	perror(argv[0]);
+	exit(EXIT_FAILURE);
+	}
+	}
+	else
+	wait(&status);
 	}
 
 	free(line);
 	return (0);
 }
-
