@@ -1,44 +1,101 @@
 Simple Shell Manual (hsh)
 
 NAME
-    hsh - simple UNIX command interpreter
+hsh - simple UNIX command interpreter
 
 SYNOPSIS
-    hsh
-    echo "command" | hsh
+hsh
+echo "command" | hsh
 
 DESCRIPTION
-    The hsh program is a simple shell that reads input, parses commands,
-    handles built-in functions, resolves commands using the PATH environment
-    variable, and executes external programs using fork and execve.
+The hsh program is a simple UNIX command interpreter written in C. It reads user input, trims whitespace, tokenizes commands, handles built-in commands, resolves commands using the PATH environment variable, and executes external programs using fork and execve. The shell works in both interactive and non-interactive modes and returns correct exit status codes.
 
-FEATURES
-    - Interactive and non-interactive modes
-    - Built-in commands: exit, env
-    - Command execution through fork/execve
-    - PATH resolution
-    - Error handling and correct exit status
+MODES OF OPERATION
+Interactive Mode:
+Displays a prompt ':)' and waits for the user to type a command.
 
-BUILT-INS
-    exit
-        Exit the shell with the last returned status.
+Non-Interactive Mode:
+Reads commands from standard input (stdin) such as when using pipes.
 
-    env
-        Print the current environment variables.
+INPUT PROCESSING
+1. Read input using getline.
+2. Trim whitespace using trim().
+3. Check if the line is empty using _isspace().
+4. Tokenize the line using parse_command().
+5. Detect built-in commands.
+6. Resolve the command path using PATH-related functions.
+7. Execute commands using fork and execve.
+8. Parent waits for the child and returns final exit status.
+
+BUILT-IN COMMANDS
+exit:
+Exits the shell using the last return status.
+
+env:
+Prints the current environment variables.
+
+PATH RESOLUTION
+When a command does not contain '/', the shell searches for it in PATH directories using:
+- get_path_env()
+- try_cmd_path()
+- cmd_with_slash()
+- find_command()
+
+If no executable is found, an error message is printed and exit status 127 is returned.
+
+FILES
+main.c:
+Main shell loop, reading input, trimming, parsing, built-in handling, and execution management.
+
+trim.c:
+Removes leading and trailing whitespace.
+
+isspace.c:
+Checks if a string contains only whitespace.
+
+parse_command.c:
+Splits the input into tokens.
+
+handle_builtins.c:
+Implements exit and env commands.
+
+handle_exit.c:
+Exit functionality.
+
+handle_env.c:
+Environment printing.
+
+get_path_env.c:
+Extracts PATH from environment variables.
+
+find_command.c:
+Resolves a command to an executable path.
+
+execute_command.c:
+Handles forking, executing, waiting, and freeing memory.
+
+main.h:
+Header file for all prototypes and includes.
 
 EXAMPLES
-    Interactive mode:
-        ./hsh
-        :) ls
-        :) exit
+Interactive:
+./hsh
+:) ls
+:) pwd
+:) exit
 
-    Non-interactive mode:
-        echo "ls -l" | ./hsh
+Non-interactive:
+echo "ls -l" | ./hsh
+
+Command not found:
+:) wrongcmd
+./hsh: 1: wrongcmd: not found
 
 EXIT STATUS
-    The shell returns the status of the last executed command.
-    Returns 127 if the command is not found.
+- Returns the exit status of the last executed command.
+- Returns 127 if a command is not found.
+- The exit built-in returns the last stored status.
 
-AUTHORS
-    Lina
-
+AUTHOR
+Lina
+Ghaida
