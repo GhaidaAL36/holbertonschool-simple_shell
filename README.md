@@ -85,3 +85,9 @@ PATH=/usr/local/bin:/usr/bin:/bin
 ### EXIT STATUS
 - Returns exit status of last command.
 - 127 if command not found.
+
+---
+
+### AUTHORS
+Lina
+Ghaida
