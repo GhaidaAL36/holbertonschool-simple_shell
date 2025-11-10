@@ -1,0 +1,44 @@
+Simple Shell Manual (hsh)
+
+NAME
+    hsh - simple UNIX command interpreter
+
+SYNOPSIS
+    hsh
+    echo "command" | hsh
+
+DESCRIPTION
+    The hsh program is a simple shell that reads input, parses commands,
+    handles built-in functions, resolves commands using the PATH environment
+    variable, and executes external programs using fork and execve.
+
+FEATURES
+    - Interactive and non-interactive modes
+    - Built-in commands: exit, env
+    - Command execution through fork/execve
+    - PATH resolution
+    - Error handling and correct exit status
+
+BUILT-INS
+    exit
+        Exit the shell with the last returned status.
+
+    env
+        Print the current environment variables.
+
+EXAMPLES
+    Interactive mode:
+        ./hsh
+        :) ls
+        :) exit
+
+    Non-interactive mode:
+        echo "ls -l" | ./hsh
+
+EXIT STATUS
+    The shell returns the status of the last executed command.
+    Returns 127 if the command is not found.
+
+AUTHORS
+    Lina
+
