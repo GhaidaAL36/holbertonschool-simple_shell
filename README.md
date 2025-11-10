@@ -89,5 +89,5 @@ PATH=/usr/local/bin:/usr/bin:/bin
 ---
 
 ### AUTHORS
-Lina
-Ghaida
+Lina Al-duylij <lenaexo0@gmail.com>
+، Ghaida Al-mutairi <Ghaida3638@gmail.com>
