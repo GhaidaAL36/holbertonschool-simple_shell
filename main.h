@@ -8,6 +8,11 @@
 #include <sys/wait.h>
 #include <string.h>
 
+
+#include <signal.h>
+void handle_sigint(int sig);
+
+
 /* Prototypes */
 int _isspace(char *s);
 char *trim(char *str);
