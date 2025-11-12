@@ -19,6 +19,8 @@ int main(int argc, char **argv, char **envp)
 
 	(void)argc;
 	(void)argv;
+	
+signal(SIGINT, handle_sigint);
 
 	while (1)
 	{
