@@ -1,56 +1,70 @@
 #include "main.h"
 
 /**
- * _getline - Reads a line from standard input
- * @lineptr: Pointer to buffer that will store the input line
- * @n: Pointer to size of buffer
- *
- * Return: Number of characters read (including '\n'), or -1 on failure
+ * _strlen - Returns the length of a string
+ * @s: String
+ * Return: Length of string
  */
-ssize_t _getline(char **lineptr, size_t *n)
+int _strlen(const char *s)
 {
-	ssize_t bytes_read = 0, total = 0;
-	char buffer[1024];
-	char *new_lineptr;
-	size_t new_size;
-	int i;
+	int i = 0;
 
-	if (lineptr == NULL || n == NULL)
-		return (-1);
+	while (s && s[i])
+		i++;
+	return (i);
+}
 
-	if (*lineptr == NULL || *n == 0)
+/**
+ * _strcmp - Compares two strings
+ * @s1: First string
+ * @s2: Second string
+ * Return: 0 if equal, positive or negative value if different
+ */
+int _strcmp(const char *s1, const char *s2)
+{
+	int i = 0;
+
+	while (s1[i] && s2[i])
 	{
-		*n = 1024;
-		*lineptr = malloc(*n);
-		if (*lineptr == NULL)
-			return (-1);
+		if (s1[i] != s2[i])
+			return (s1[i] - s2[i]);
+		i++;
 	}
+	return (s1[i] - s2[i]);
+}
 
-	while (1)
+/**
+ * _strcpy - Copies a string
+ * @dest: Destination buffer
+ * @src: Source string
+ * Return: Pointer to dest
+ */
+char *_strcpy(char *dest, const char *src)
+{
+	int i = 0;
+
+	while (src[i])
 	{
-		bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
-		if (bytes_read <= 0)
-			return (total > 0 ? total : -1);
-
-		for (i = 0; i < bytes_read; i++)
-		{
-			if ((size_t)(total + 1) >= *n)
-			{
-				new_size = *n * 2;
-				new_lineptr = realloc(*lineptr, new_size);
-				if (new_lineptr == NULL)
-					return (-1);
-				*lineptr = new_lineptr;
-				*n = new_size;
-			}
-
-			(*lineptr)[total++] = buffer[i];
-
-			if (buffer[i] == '\n')
-			{
-				(*lineptr)[total] = '\0';
-				return (total);
-			}
-		}
+		dest[i] = src[i];
+		i++;
 	}
+	dest[i] = '\0';
+	return (dest);
+}
+
+/**
+ * _strchr - Locates a character in a string
+ * @s: String to search
+ * @c: Character to find
+ * Return: Pointer to first occurrence or NULL
+ */
+char *_strchr(const char *s, char c)
+{
+	while (*s)
+	{
+		if (*s == c)
+			return ((char *)s);
+		s++;
+	}
+	return (NULL);
 }
