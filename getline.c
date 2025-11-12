@@ -18,7 +18,6 @@ ssize_t _getline(char **lineptr, size_t *n)
 	if (lineptr == NULL || n == NULL)
 		return (-1);
 
-	/* Allocate initial buffer if needed */
 	if (*lineptr == NULL || *n == 0)
 	{
 		*n = 1024;
@@ -35,7 +34,7 @@ ssize_t _getline(char **lineptr, size_t *n)
 
 		for (i = 0; i < bytes_read; i++)
 		{
-			if (total + 1 >= *n)
+			if ((size_t)(total + 1) >= *n)
 			{
 				new_size = *n * 2;
 				new_lineptr = realloc(*lineptr, new_size);
