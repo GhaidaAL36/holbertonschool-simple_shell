@@ -9,8 +9,11 @@
 #include <string.h>
 
 
-#include <signal.h>
-void handle_sigint(int sig);
+#include <signal.h> /* task 12 */
+void handle_sigint(int sig); /* task 12 */
+
+int handle_logical_operators(char *line, char **env); /* task 16 */
+char *_strstr(char *haystack, char *needle); /* task 16 */
 
 
 /* Prototypes */
