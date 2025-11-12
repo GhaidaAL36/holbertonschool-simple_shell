@@ -19,5 +19,7 @@ char *cmd_with_slash(char *cmd);
 int parse_command(char *line, char *args[]);
 int handle_builtins(char *args[], char *line, char **envp, int *status);
 int execute_command(char *args[], char **envp);
+ssize_t _getline(char **lineptr, size_t *n);
+
 #endif /* MAIN_H */
 
