@@ -12,13 +12,6 @@
 #include <signal.h> /* task 12 */
 void handle_sigint(int sig); /* task 12 */
 
-int handle_logical_operators(char *line, char **env); /* task 16 */
-char *_strstr(char *haystack, char *needle); /* task 16 */
-
-ssize_t _getline(char **lineptr, size_t *n);
-int execute_command_line(char *cmd, char **env);
-
-
 /* Prototypes */
 int _isspace(char *s);
 char *trim(char *str);
