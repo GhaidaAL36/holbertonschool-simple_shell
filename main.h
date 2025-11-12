@@ -20,11 +20,5 @@ int parse_command(char *line, char *args[]);
 int handle_builtins(char *args[], char *line, char **envp, int *status);
 int execute_command(char *args[], char **envp);
 
-ssize_t _getline(char **lineptr, size_t *n);
-int _strlen(const char *s);
-int _strcmp(const char *s1, const char *s2);
-char *_strcpy(char *dest, const char *src);
-char *_strchr(const char *s, char c);
-
 #endif /* MAIN_H */
 
