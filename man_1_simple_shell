@@ -1,101 +1,142 @@
-Simple Shell Manual (hsh)
 
-NAME
-hsh - simple UNIX command interpreter
+.TH HSH 1 "November 2025" "Version 1.0" "Simple Shell Manual"
 
-SYNOPSIS
-hsh
+.SH NAME
+hsh \- simple UNIX command interpreter
+
+.SH SYNOPSIS
+.B hsh
+.br
 echo "command" | hsh
 
-DESCRIPTION
-The hsh program is a simple UNIX command interpreter written in C. It reads user input, trims whitespace, tokenizes commands, handles built-in commands, resolves commands using the PATH environment variable, and executes external programs using fork and execve. The shell works in both interactive and non-interactive modes and returns correct exit status codes.
+.SH DESCRIPTION
+.B hsh
+is a simple UNIX command line interpreter that reads user input, trims whitespace, tokenizes commands, checks for built-in commands, resolves commands using the PATH environment variable, and executes programs using fork and execve.
+.PP
+It operates in both interactive and non-interactive modes and returns appropriate exit status codes.
 
-MODES OF OPERATION
-Interactive Mode:
-Displays a prompt ':)' and waits for the user to type a command.
+.SH MODES OF OPERATION
+.B Interactive Mode:
+.br
+Displays the prompt ":)" and waits for user input.
+.PP
+.B Non-Interactive Mode:
+.br
+Reads commands from standard input, such as through pipes.
 
-Non-Interactive Mode:
-Reads commands from standard input (stdin) such as when using pipes.
-
-INPUT PROCESSING
+.SH INPUT PROCESSING
 1. Read input using getline.
+.br
 2. Trim whitespace using trim().
+.br
 3. Check if the line is empty using _isspace().
+.br
 4. Tokenize the line using parse_command().
+.br
 5. Detect built-in commands.
-6. Resolve the command path using PATH-related functions.
-7. Execute commands using fork and execve.
-8. Parent waits for the child and returns final exit status.
+.br
+6. Resolve command path using PATH functions.
+.br
+7. Execute the command using fork and execve.
+.br
+8. Parent waits for child and returns exit status.
 
-BUILT-IN COMMANDS
-exit:
-Exits the shell using the last return status.
-
-env:
+.SH BUILT-IN COMMANDS
+.B exit
+.br
+Exits the shell using the last stored status.
+.PP
+.B env
+.br
 Prints the current environment variables.
 
-PATH RESOLUTION
-When a command does not contain '/', the shell searches for it in PATH directories using:
-- get_path_env()
-- try_cmd_path()
-- cmd_with_slash()
-- find_command()
+.SH PATH RESOLUTION
+If the command does not contain '/', the shell searches PATH directories using:
+.PP
+.B get_path_env()
+.br
+.B try_cmd_path()
+.br
+.B cmd_with_slash()
+.br
+.B find_command()
+.PP
+If the command is not found, an error message is printed and exit status 127 is returned.
 
-If no executable is found, an error message is printed and exit status 127 is returned.
-
-FILES
-main.c:
-Main shell loop, reading input, trimming, parsing, built-in handling, and execution management.
-
-trim.c:
+.SH FILES
+.B main.c
+.br
+Main loop that reads input, processes it, checks built-ins, and executes commands.
+.PP
+.B trim.c
+.br
 Removes leading and trailing whitespace.
+.PP
+.B isspace.c
+.br
+Checks if a string is only whitespace.
+.PP
+.B parse_command.c
+.br
+Splits input into tokens.
+.PP
+.B handle_builtins.c
+.br
+Implements exit and env.
+.PP
+.B handle_exit.c
+.br
+Exit logic.
+.PP
+.B handle_env.c
+.br
+Prints environment variables.
+.PP
+.B get_path_env.c
+.br
+Extracts PATH variable.
+.PP
+.B find_command.c
+.br
+Resolves the executable path.
+.PP
+.B execute_command.c
+.br
+Handles forking, executing, waiting, and memory cleanup.
+.PP
+.B main.h
+.br
+Header file containing prototypes and includes.
 
-isspace.c:
-Checks if a string contains only whitespace.
-
-parse_command.c:
-Splits the input into tokens.
-
-handle_builtins.c:
-Implements exit and env commands.
-
-handle_exit.c:
-Exit functionality.
-
-handle_env.c:
-Environment printing.
-
-get_path_env.c:
-Extracts PATH from environment variables.
-
-find_command.c:
-Resolves a command to an executable path.
-
-execute_command.c:
-Handles forking, executing, waiting, and freeing memory.
-
-main.h:
-Header file for all prototypes and includes.
-
-EXAMPLES
-Interactive:
+.SH EXAMPLES
+.B Interactive:
+.br
 ./hsh
+.br
 :) ls
+.br
 :) pwd
+.br
 :) exit
-
-Non-interactive:
+.PP
+.B Non-interactive:
+.br
 echo "ls -l" | ./hsh
-
-Command not found:
+.PP
+.B Command not found:
+.br
 :) wrongcmd
+.br
 ./hsh: 1: wrongcmd: not found
 
-EXIT STATUS
-- Returns the exit status of the last executed command.
-- Returns 127 if a command is not found.
-- The exit built-in returns the last stored status.
+.SH EXIT STATUS
+Returns the status of the last executed command.
+.PP
+Returns 127 if a command is not found.
+.PP
+The exit built-in returns the last stored status.
 
-AUTHOR
+.SH AUTHOR
 Lina
+.br
 Ghaida
