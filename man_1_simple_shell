@@ -137,6 +137,6 @@ Returns 127 if a command is not found.
 The exit built-in returns the last stored status.
 
 .SH AUTHOR
-Lina
+Lina <https://github.com/linawsm52>
 .br
-Ghaida
+Ghaida <https://github.com/GhaidaAL36>
